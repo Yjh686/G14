@@ -1,0 +1,82 @@
+/* ============ 班级问卷系统 · 全局设计系统 ============ */
+
+:root {
+  /* 品牌色 */
+  --brand: #4c6fff;
+  --brand-2: #6b5bff;
+  --brand-grad: linear-gradient(135deg, #4c6fff 0%, #7a5cff 100%);
+
+  /* 背景与文本 */
+  --app-bg: #eef1f7;
+  --text-1: #1f2733;
+  --text-2: #5a6472;
+  --text-3: #8a94a6;
+
+  /* 卡片 */
+  --card-shadow: 0 6px 20px rgba(31, 42, 80, 0.07);
+  --card-shadow-hover: 0 14px 34px rgba(31, 42, 80, 0.14);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+
+  /* 侧边栏 */
+  --sidebar-grad: linear-gradient(180deg, #1d2a45 0%, #152039 100%);
+
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--app-bg);
+  color: var(--text-1);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+/* 进入动画 */
+@keyframes app-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 通用页面容器（除登录外的主内容页） */
+.page-enter {
+  animation: app-fade-up 0.35s ease both;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(31, 42, 80, 0.18);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(31, 42, 80, 0.3);
+}
