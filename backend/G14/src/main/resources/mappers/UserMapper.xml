@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.g14.g14.login.mapper.UserMapper">
+
+    <!--
+      mybatis.configuration.map-underscore-to-camel-case=true 已开启下划线转驼峰，
+      real_name→realName、must_change_password→mustChangePassword、
+      token_version→tokenVersion、login_fail_count→loginFailCount、
+      locked_until→lockedUntil、created_at→createdAt 等自动映射。
+      role 为 VARCHAR，由 MyBatis 默认的 EnumTypeHandler 按枚举 name 自动映射。
+    -->
+    <sql id="Base_Column_List">
+        id, account, password_hash, real_name, role, status, must_change_password,
+        phone, token_version, login_fail_count, locked_until, last_login_time,
+        created_at, updated_at
+    </sql>
+
+    <select id="selectById" resultType="User">
+        SELECT <include refid="Base_Column_List"/> FROM sys_user WHERE id = #{id}
+    </select>
+
+    <select id="selectByAccount" resultType="User">
+        SELECT <include refid="Base_Column_List"/> FROM sys_user WHERE account = #{account}
+    </select>
+
+    <select id="selectByPhone" resultType="User">
+        SELECT <include refid="Base_Column_List"/> FROM sys_user WHERE phone = #{phone}
+    </select>
+
+    <select id="countByAccount" resultType="int">
+        SELECT COUNT(1) FROM sys_user WHERE account = #{account}
+    </select>
+
+    <select id="countByPhone" resultType="int">
+        SELECT COUNT(1) FROM sys_user WHERE phone = #{phone}
+    </select>
+
+    <insert id="insert" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (account, password_hash, real_name, role, status, phone,
+                              must_change_password, token_version, login_fail_count)
+        VALUES (#{account}, #{passwordHash}, #{realName}, #{role}, #{status}, #{phone},
+                #{mustChangePassword}, #{tokenVersion}, 0)
+    </insert>
+
+    <update id="onLoginSuccess">
+        UPDATE sys_user
+        SET login_fail_count = 0,
+            locked_until     = NULL,
+            last_login_time  = #{loginTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="onLoginFail">
+        UPDATE sys_user
+        SET login_fail_count = #{loginFailCount},
+            locked_until     = #{lockedUntil}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE sys_user
+        SET password_hash        = #{passwordHash},
+            token_version        = #{tokenVersion},
+            must_change_password = #{mustChangePassword},
+            login_fail_count     = 0,
+            locked_until         = NULL
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE sys_user
+        SET status        = #{status},
+            token_version = #{tokenVersion}
+        WHERE id = #{id}
+    </update>
+
+    <sql id="Page_Where">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (account LIKE CONCAT('%', #{keyword}, '%')
+                OR real_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="role != null and role != ''">
+                AND role = #{role}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectPage" resultType="User">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_user
+        <include refid="Page_Where"/>
+        ORDER BY id DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countPage" resultType="long">
+        SELECT COUNT(1) FROM sys_user
+        <include refid="Page_Where"/>
+    </select>
+
+</mapper>

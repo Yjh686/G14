@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.g14.g14.login.mapper.LoginLogMapper">
+
+    <insert id="insert" parameterType="LoginLog">
+        INSERT INTO sys_login_log (user_id, account, login_type, result, reason, ip, user_agent)
+        VALUES (#{userId}, #{account}, #{loginType}, #{result}, #{reason}, #{ip}, #{userAgent})
+    </insert>
+
+</mapper>

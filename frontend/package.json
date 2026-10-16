@@ -8,9 +8,16 @@
     "mock": "node mock/server.js",
     "dev:all": "node mock/dev-all.mjs",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "node tools/seed-demo.mjs",
+    "unlock": "node tools/unlock-accounts.mjs",
+    "test:contract": "node tools/contract-test.mjs",
+    "test:e2e": "node tools/e2e-journey.mjs",
+    "test:browser": "node tools/browser-login.mjs",
+    "test:validator": "node tools/probe-validator.mjs"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "axios": "^1.20.0",
     "element-plus": "^2.14.7",
     "pinia": "^4.1.0",

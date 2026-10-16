@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
+// Element Plus 的图标是独立包，不会随 ElementPlus 插件全局注册，
+// 模板里直接写 <ArrowDown /> 只会渲染成一个未知元素（控制台警告 + 图标缺失）。
+import { ArrowDown } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 import { ROLE_LABEL, ROLE_TAG } from '../utils/role'
 import { logout } from '../api/auth'

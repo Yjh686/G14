@@ -1,0 +1,28 @@
+# ---- 操作系统 / 编辑器 ----
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+
+# ---- 日志 ----
+logs/
+*.log
+
+# ---- Node / 前端 ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# ---- Java / Maven ----
+target/
+*.class
+
+# ---- 本地环境变量（.env.example / .env.development 仍纳入版本管理）----
+.env
+.env.local
+.env.*.local

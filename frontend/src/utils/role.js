@@ -1,4 +1,7 @@
-// 角色常量与文案，与后端 TINYINT(1/2/3) 对应的可读字符串一一映射
+// 角色常量与文案。
+// 后端 Role 枚举以**字符串**存储与返回（STUDENT / TEACHER / ADMIN），
+// 不是 TINYINT —— 见 backend security/Role.java 与 sys_user.role VARCHAR(16)。
+// 因此这里的值必须与后端枚举名逐字一致，否则角色判断与路由守卫会失效。
 export const ROLE = {
   STUDENT: 'STUDENT',
   TEACHER: 'TEACHER',

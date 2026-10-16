@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { ArrowRight } from '@element-plus/icons-vue'
 import { useAuthStore } from '../stores/auth'
 import { ROLE_LABEL } from '../utils/role'
 

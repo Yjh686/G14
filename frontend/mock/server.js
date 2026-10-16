@@ -1,13 +1,18 @@
-// mock/server.js —— 本地开发用 Mock 后端（仅用于前端联调 / 预览登录后页面）
+// mock/server.js —— 本地开发用 Mock 后端（仅用于前端独立预览页面，不连真实后端时使用）
 // 说明：
-//   1. 监听 8080 端口，配合 vite.config.js 的 /api 代理转发到 http://localhost:8080；
-//   2. 为演示方便，密码以明文比对并写入内存，真实后端必须使用 bcrypt 加密存储；
-//   3. 支持 /api/auth 下全部认证接口 + /api/admin 管理端接口，带 JWT 校验与角色守卫。
+//   1. 【默认端口 9090】故意避开真实后端占用的 8080，避免 `npm run mock` 时
+//      EADDRINUSE，或在 vite 代理下「悄悄顶掉」真实后端让联调结果失真。
+//      要用 mock 时把 .env.development 的 VITE_PROXY_TARGET 改成 http://localhost:9090。
+//   2. 真实的 Spring Boot 后端已实现全部这些接口（契约以它为准），
+//      本文件保留仅为「后端没起时也能看页面」的降级方案；
+//      它的字段名（name / password / page / size）与真实后端（realName /
+//      initialPassword / pageNum / pageSize）不同，src/api/auth.js 按真实后端转换。
+//   3. 为演示方便，密码以明文比对并写入内存，真实后端使用 bcrypt 加密存储。
 import http from 'http'
 import crypto from 'crypto'
 
 const SECRET = 'mock-secret-do-not-use-in-prod'
-const PORT = process.env.PORT || 8080
+const PORT = process.env.PORT || 9090
 const TOKEN_TTL = 7200 // 秒
 
 // ---------------- 内存用户表（重启即重置） ----------------
