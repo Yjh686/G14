@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
@@ -12,6 +12,50 @@ const auth = useAuthStore()
 const config = useConfigStore()
 
 const collapsed = ref(false)
+
+/**
+ * 窄屏（手机）判定。
+ *
+ * 为什么需要：侧边栏是 210px 的固定宽度，手机视口只有 390px 左右，
+ * 留在文档流里会把正文挤成 180px —— 中文在这个宽度下会退化成「一个字一行」，
+ * 看起来像排版坏了。窄屏下必须把侧边栏改成浮层抽屉（fixed + transform），
+ * 正文才能拿到整屏宽度。
+ */
+const isNarrow = ref(false)
+const drawerOpen = ref(false)
+
+/** 窄屏用抽屉，宽屏用折叠，两者语义不同不能共用一个开关 */
+function toggleNav() {
+  if (isNarrow.value) {
+    drawerOpen.value = !drawerOpen.value
+    return
+  }
+  collapsed.value = !collapsed.value
+}
+
+/** 抽屉里点任意菜单项就关掉，否则点完还挡着内容 */
+watch(() => route.fullPath, () => {
+  drawerOpen.value = false
+})
+
+let mq: MediaQueryList | null = null
+const onMq = (e: MediaQueryListEvent | MediaQueryList) => {
+  isNarrow.value = e.matches
+  // 从窄变宽时抽屉状态要清掉，否则回到桌面会残留一个不可见的打开态
+  if (!e.matches) drawerOpen.value = false
+}
+
+onMounted(() => {
+  mq = window.matchMedia('(max-width: 768px)')
+  onMq(mq)
+  mq.addEventListener('change', onMq)
+})
+
+onBeforeUnmount(() => {
+  mq?.removeEventListener('change', onMq)
+})
+
+const asideWidth = computed(() => (isNarrow.value ? '210px' : collapsed.value ? '64px' : '210px'))
 
 const menus = computed(() => {
   const items: { index: string; title: string; icon: string }[] = [
@@ -82,12 +126,24 @@ async function handleCommand(command: string) {
 
 <template>
   <el-container class="layout">
-    <el-aside :width="collapsed ? '64px' : '210px'" class="layout-aside">
+    <!-- 抽屉打开时的遮罩：点空白处收起，符合手机端习惯 -->
+    <div v-if="isNarrow && drawerOpen" class="nav-mask" @click="drawerOpen = false" />
+
+    <el-aside
+      :width="asideWidth"
+      class="layout-aside"
+      :class="{ 'is-drawer': isNarrow, 'is-open': drawerOpen }"
+    >
       <div class="brand">
         <el-icon :size="22"><Document /></el-icon>
-        <span v-show="!collapsed" class="brand-text">{{ config.siteName }}</span>
+        <span v-show="!collapsed || isNarrow" class="brand-text">{{ config.siteName }}</span>
       </div>
-      <el-menu :default-active="activeMenu" :collapse="collapsed" router class="layout-menu">
+      <el-menu
+        :default-active="activeMenu"
+        :collapse="collapsed && !isNarrow"
+        router
+        class="layout-menu"
+      >
         <el-menu-item v-for="item in menus" :key="item.index" :index="item.index">
           <el-icon><component :is="item.icon" /></el-icon>
           <template #title>{{ item.title }}</template>
@@ -98,8 +154,8 @@ async function handleCommand(command: string) {
     <el-container>
       <el-header class="layout-header">
         <div class="header-left">
-          <el-icon class="collapse-btn" :size="18" @click="collapsed = !collapsed">
-            <component :is="collapsed ? 'Expand' : 'Fold'" />
+          <el-icon class="collapse-btn" :size="18" @click="toggleNav">
+            <component :is="isNarrow || collapsed ? 'Expand' : 'Fold'" />
           </el-icon>
           <span class="header-title">{{ currentTitle }}</span>
         </div>
@@ -134,13 +190,58 @@ async function handleCommand(command: string) {
 
 <style scoped>
 .layout {
+  /* 100vh 在移动浏览器里会被地址栏算进去，导致底部被裁；
+     有 dvh 就用 dvh，没有则回落到 vh。 */
   height: 100vh;
+  height: 100dvh;
 }
 
 .layout-aside {
   background-color: #1f2d3d;
   transition: width 0.2s;
   overflow-x: hidden;
+}
+
+/* 窄屏：侧边栏脱离文档流变成左侧浮层抽屉，正文才能拿满整屏宽度 */
+.layout-aside.is-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2002;
+  transform: translateX(-100%);
+  transition: transform 0.22s ease;
+  box-shadow: 0 0 16px rgb(0 0 0 / 30%);
+}
+
+.layout-aside.is-drawer.is-open {
+  transform: translateX(0);
+}
+
+.nav-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 2001;
+  background-color: rgb(0 0 0 / 45%);
+}
+
+/* 手机上表头空间紧张：用户名和角色标签先让位，头像和菜单按钮留着 */
+@media (max-width: 768px) {
+  .layout-header {
+    padding: 0 10px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .user-info :deep(.el-tag) {
+    display: none;
+  }
 }
 
 .brand {
