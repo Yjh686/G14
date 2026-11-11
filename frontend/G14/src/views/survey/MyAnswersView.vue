@@ -91,7 +91,7 @@ onMounted(load)
               link
               type="primary"
               size="small"
-              @click="viewDetail(row)"
+              @click="viewDetail((row as MyAnswerVO))"
             >
               查看作答
             </el-button>

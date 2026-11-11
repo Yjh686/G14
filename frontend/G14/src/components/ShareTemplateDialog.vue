@@ -165,14 +165,14 @@ watch(visible, (v) => {
           <span class="switch-item">
             <el-switch
               :model-value="form.anonymousDefault === 1"
-              @update:model-value="(v: boolean) => (form.anonymousDefault = v ? 1 : 0)"
+              @update:model-value="(v: unknown) => (form.anonymousDefault = v === true || v === 1 ? 1 : 0)"
             />
             <span>使用者的问卷默认匿名</span>
           </span>
           <span class="switch-item">
             <el-switch
               :model-value="form.limitOnceDefault === 1"
-              @update:model-value="(v: boolean) => (form.limitOnceDefault = v ? 1 : 0)"
+              @update:model-value="(v: unknown) => (form.limitOnceDefault = v === true || v === 1 ? 1 : 0)"
             />
             <span>使用者的问卷默认限填一次</span>
           </span>

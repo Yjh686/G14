@@ -18,11 +18,16 @@ declare module 'vue-router' {
   }
 }
 
+import LoginView from '@/views/auth/LoginView.vue'
+
 const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/views/auth/LoginView.vue'),
+    // 静态引入而非懒加载：登录页是所有人必经的第一页，它和它的依赖（el-form /
+    // el-input / el-button …）是首屏关键路径。拆成动态 chunk 会多出一个约 2 秒的
+    // 网络往返（实测隧道出口在洛杉矶），而此时那些 chunk 加起来才几十 KB。
+    component: LoginView,
     meta: { public: true, title: '登录' },
   },
   {
@@ -227,7 +232,13 @@ router.beforeEach(async (to) => {
 
   // 0. 公开配置：站点名要出现在浏览器标题与登录页上，免登录也要能读。
   //    load() 内部做了缓存与并发合并，除首次外都是空转；失败不阻塞导航。
-  await useConfigStore().load()
+  //
+  //    这里刻意不 await：站点名有兜底值，配置是响应式的，到货后侧边栏、
+  //    公告、密码规则文案会自己更新。await 会把「进入任何页面」串行绑在
+  //    一次网络请求上 —— 本机 18ms 看不见，经公网隧道实测要 3.1s，
+  //    且正好挡在路由 chunk 之前，等于给首屏加 3 秒。
+  const config = useConfigStore()
+  void config.load().then(applyTitle)
 
   // 1. 免登录页面直接放行（已登录访问登录页则回首页）
   if (to.meta.public) {
@@ -270,11 +281,20 @@ router.beforeEach(async (to) => {
   return true
 })
 
-router.afterEach((to) => {
-  // 站点名来自系统配置（FR-CFG-01），管理员改完标题立即跟着变；
-  // 配置还没加载时用兜底值，所以这里不 await
+/**
+ * 标题 = 「页面名 - 站点名」。
+ * 配置尚未到货时站点名是兜底值，到货后再调一次就能纠正，
+ * 所以导航与配置加载谁先完成都不影响正确性。
+ */
+function applyTitle(): void {
+  const route = router.currentRoute.value
   const siteName = useConfigStore().siteName
-  document.title = to.meta.title ? `${to.meta.title} - ${siteName}` : siteName
+  const pageTitle = route.meta.title as string | undefined
+  document.title = pageTitle ? `${pageTitle} - ${siteName}` : siteName
+}
+
+router.afterEach(() => {
+  applyTitle()
 })
 
 export default router

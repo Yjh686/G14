@@ -174,8 +174,12 @@ try {
   await page.waitForSelector('.el-table__row', { timeout: 15000 })
   const myTable = await page.locator('.el-table').innerText()
   check('记录里有这份问卷', myTable.includes(TITLE))
-  check('匿名卷提示不回显', myTable.includes('匿名，不回显'))
-  check('没有「查看作答」入口', (await page.locator('button:has-text("查看作答")').count()) === 0)
+  // 断言按行定位：库里可能残留别的非匿名记录（本地演示提交的），
+  // 那些行本来就该有「查看作答」。只有这份匿名卷所在的行必须显示「匿名，不回显」。
+  const myRow = page.locator('.el-table__row', { hasText: TITLE })
+  check('这份卷只占一行', (await myRow.count()) === 1)
+  check('匿名卷提示不回显', (await myRow.innerText()).includes('匿名，不回显'))
+  check('这一行没有「查看作答」入口', (await myRow.locator('button:has-text("查看作答")').count()) === 0)
 
   section('10. 学生访问问卷管理被拦下')
   await page.goto(`${BASE}/surveys`, { waitUntil: 'networkidle' })

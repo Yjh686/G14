@@ -174,7 +174,7 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="操作" width="140" align="center">
           <template #default="{ row }">
-            <el-button link type="primary" icon="Key" @click="openDrawer(row)">
+            <el-button link type="primary" icon="Key" @click="openDrawer((row as UserVO))">
               配置权限
             </el-button>
           </template>
@@ -223,7 +223,7 @@ onMounted(() => {
               <el-checkbox
                 :model-value="isRolePerm(p.code) || isExtraPerm(p.code)"
                 :disabled="isRolePerm(p.code) || savingCode === p.code"
-                @change="(v: boolean) => togglePerm(p.code, v)"
+                @change="(v: unknown) => togglePerm(p.code, v === true)"
               >
                 {{ p.name }}
               </el-checkbox>

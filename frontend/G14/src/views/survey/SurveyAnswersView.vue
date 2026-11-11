@@ -266,13 +266,13 @@ onMounted(load)
         </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="viewDetail(row)">查看</el-button>
+            <el-button link type="primary" size="small" @click="viewDetail((row as AnswerSheetVO))">查看</el-button>
             <el-button
               v-if="canInvalidate && row.isValid === 1"
               link
               type="warning"
               size="small"
-              @click="invalidate(row)"
+              @click="invalidate((row as AnswerSheetVO))"
             >
               标记无效
             </el-button>
@@ -281,7 +281,7 @@ onMounted(load)
               link
               type="success"
               size="small"
-              @click="restore(row)"
+              @click="restore((row as AnswerSheetVO))"
             >
               恢复
             </el-button>
@@ -290,7 +290,7 @@ onMounted(load)
               link
               type="danger"
               size="small"
-              @click="remove(row)"
+              @click="remove((row as AnswerSheetVO))"
             >
               删除
             </el-button>

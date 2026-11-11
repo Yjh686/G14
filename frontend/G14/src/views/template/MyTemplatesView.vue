@@ -207,7 +207,7 @@ onMounted(load)
               link
               type="warning"
               size="small"
-              @click="resubmit(row)"
+              @click="resubmit(row as TemplateVO)"
             >
               重新提交
             </el-button>
@@ -216,7 +216,7 @@ onMounted(load)
               link
               type="warning"
               size="small"
-              @click="offline(row)"
+              @click="offline(row as TemplateVO)"
             >
               下架
             </el-button>
@@ -225,7 +225,7 @@ onMounted(load)
               link
               type="danger"
               size="small"
-              @click="remove(row)"
+              @click="remove(row as TemplateVO)"
             >
               删除
             </el-button>

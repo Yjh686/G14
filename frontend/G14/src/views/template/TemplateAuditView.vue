@@ -180,13 +180,13 @@ onMounted(load)
         </el-table-column>
         <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="openPreview(row)">查看内容</el-button>
+            <el-button link type="primary" size="small" @click="openPreview(row as TemplateVO)">查看内容</el-button>
             <el-button
               v-if="row.status === 'PENDING'"
               link
               type="success"
               size="small"
-              @click="approve(row)"
+              @click="approve(row as TemplateVO)"
             >
               通过
             </el-button>
@@ -195,7 +195,7 @@ onMounted(load)
               link
               type="danger"
               size="small"
-              @click="openReject(row)"
+              @click="openReject(row as TemplateVO)"
             >
               驳回
             </el-button>

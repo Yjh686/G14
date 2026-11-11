@@ -149,8 +149,8 @@ onMounted(load)
         <el-table-column label="操作" width="160" align="center" fixed="right">
           <template #default="{ row }">
             <template v-if="row.auditStatus === 0">
-              <el-button link type="success" @click="openAudit(row, 'approve')">通过</el-button>
-              <el-button link type="danger" @click="openAudit(row, 'reject')">驳回</el-button>
+              <el-button link type="success" @click="openAudit((row as UserVO), 'approve')">通过</el-button>
+              <el-button link type="danger" @click="openAudit((row as UserVO), 'reject')">驳回</el-button>
             </template>
             <span v-else class="text-muted">已处理</span>
           </template>

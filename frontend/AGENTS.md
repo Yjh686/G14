@@ -70,7 +70,13 @@ src/
 
 ## 已知事项
 
-- 主 chunk 约 1.29 MB（gzip 417 kB），因为 Element Plus 与全部图标做了全量注册。课程级项目可接受；若要优化，用 `unplugin-vue-components` 按需引入图标。
+- Element Plus 是**按需引入**（`unplugin-vue-components` + `unplugin-auto-import`，配置在 `vite.config.ts`），别再写 `app.use(ElementPlus)` 或 `import 'element-plus/dist/index.css'`——那样会把已经降下来的首屏体积打回 1.29 MB。首屏 entry 现约 354 KB（gzip 131 KB）。
+- 两个按需引入之后的硬约定：①写死的 PascalCase 图标自动生效，但**字符串形式的图标**（菜单数据里的 `{ icon: 'Memo' }`、`<component :is="'Expand'" />`）必须在 `src/main.ts` 的 `ICONS` 里手工登记，否则渲染空白；②中文语言包靠 `App.vue` 的 `<el-config-provider :locale="zhCn">`，去掉它分页会显示「10/page」、日期选择器变英文。
+- **路由守卫里不许 await 网络请求**。`useConfigStore().load()` 是 fire-and-forget（`void ... .then(applyTitle)`）：本机 18ms 看不出来，公网隧道实测 3.1s，await 它等于给首屏白加 3 秒。站点名有兜底值、配置是响应式的，晚到不影响正确性。
+- 登录页 `LoginView` 是**静态引入**（`component: LoginView`），其余 27 个路由继续 `() => import(...)`。理由同上：登录页是必经第一页，多一个动态 chunk 就多一个约 2 秒的往返。往 entry 里塞别的页面（尤其带 echarts 的统计页）是相反方向的错误。
+- 不要给这个项目加 `manualChunks` 按包名分组。实测把 `element-plus` 归成一个 vendor chunk 后，它变成 957 KB 并被 `modulepreload` 强制进首屏 —— 按需引入懒加载的组件全被拽了回来。详见 `docs/design/首屏加载优化.md`。
+- `src/auto-imports.d.ts` 与 `src/components.d.ts` 是插件自动生成的类型声明，**要入库**（否则别人 clone 下来 `vue-tsc` 报找不到 ElMessage 等类型）。改完 `vite.config.ts` 或新增组件后会自动重写，冲突时直接接受生成的版本。
+- 按需引入后 `<el-table>` 的 `<template #default="{ row }">` 中 row 类型是 `DefaultRow`（`Record<string, any>`），传给声明为具体 VO 的函数会报 `TS2345`。写法是 `@click="fn((row as XxxVO))"`——**保留外层括号**，否则 `<` 可能被模板解析成标签。
 - `playwright-core` 只是驱动本机已安装的 Chrome，不下载浏览器；换机器需设 `E2E_CHROME` 环境变量指向 chrome.exe。
 - 本机只有 Windows PowerShell 5.1，`pwsh` 命令不存在；执行 `.ps1` 脚本要用 `& 'path\to\script.ps1'`，且脚本需带 UTF-8 BOM 才能正确解析中文。
 - E2E 里 `page.evaluate(() => localStorage...)` 前必须先 `page.goto()` 到同源页面，否则 `about:blank` 会抛 `SecurityError`。
@@ -80,3 +86,5 @@ src/
 - 站点名/公告改动后无需重新部署：`configStore.load(true)` 会强制刷新，侧边栏与标题立即跟随；刷新浏览器也会重新拉公开配置。
 - 编辑器里的题目类名是 `.question-item`；`.question` 只存在于 `QuestionRenderer`（填写页/预览页）。E2E 断言编辑器里的题干与选项要读 `inputValue()`，`innerText` 取不到 `<input>` 的值。
 - 条形图末端标签形如 `3 · 37.5%`，`barOption` 的 `grid.right` 必须留够宽度（现为 84px）。留 48px 时 ECharts 会按画布右界裁切，百分号被切掉，截图看着像 `37.5'`。
+- E2E 断言「列表里没有 X」时**必须按行定位**（`.el-table__row` 的 `hasText`），不要断言整张表。数据库里可能残留别的记录，整表断言会随数据变化假失败——`e2e-survey` 的「匿名卷不回显」就踩过。
+- 首屏性能的取舍与实测数据见 `docs/design/首屏加载优化.md`（含「试过但撤回」的 manualChunks、以及为什么瓶颈在隧道而非代码）。

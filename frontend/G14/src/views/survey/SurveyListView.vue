@@ -251,7 +251,7 @@ onMounted(load)
         <el-table-column prop="createTime" label="创建时间" width="160" />
         <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="edit(row)">
+            <el-button link type="primary" size="small" @click="edit((row as SurveyVO))">
               {{ row.status === 'DRAFT' ? '编辑' : '查看' }}
             </el-button>
             <el-button
@@ -259,7 +259,7 @@ onMounted(load)
               link
               type="success"
               size="small"
-              @click="publish(row)"
+              @click="publish((row as SurveyVO))"
             >
               发布
             </el-button>
@@ -268,7 +268,7 @@ onMounted(load)
               link
               type="warning"
               size="small"
-              @click="pause(row)"
+              @click="pause((row as SurveyVO))"
             >
               暂停
             </el-button>
@@ -277,7 +277,7 @@ onMounted(load)
               link
               type="success"
               size="small"
-              @click="resume(row)"
+              @click="resume((row as SurveyVO))"
             >
               恢复
             </el-button>
@@ -286,15 +286,15 @@ onMounted(load)
               link
               type="danger"
               size="small"
-              @click="close(row)"
+              @click="close((row as SurveyVO))"
             >
               结束
             </el-button>
             <el-dropdown trigger="click" @command="(cmd: string) => {
-              if (cmd === 'answers') viewAnswers(row)
-              if (cmd === 'stats') viewStats(row)
-              if (cmd === 'copy') copySurvey(row)
-              if (cmd === 'delete') remove(row)
+              if (cmd === 'answers') viewAnswers(row as SurveyVO)
+              if (cmd === 'stats') viewStats(row as SurveyVO)
+              if (cmd === 'copy') copySurvey(row as SurveyVO)
+              if (cmd === 'delete') remove(row as SurveyVO)
             }">
               <el-button link type="primary" size="small">更多</el-button>
               <template #dropdown>

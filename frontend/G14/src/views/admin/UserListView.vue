@@ -245,12 +245,12 @@ onMounted(load)
         </el-table-column>
         <el-table-column label="操作" width="230" fixed="right" align="center">
           <template #default="{ row }">
-            <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-            <el-button link type="warning" @click="resetPassword(row)">重置密码</el-button>
-            <el-button link :type="row.status === 1 ? 'danger' : 'success'" @click="toggleStatus(row)">
+            <el-button link type="primary" @click="openEdit((row as UserVO))">编辑</el-button>
+            <el-button link type="warning" @click="resetPassword((row as UserVO))">重置密码</el-button>
+            <el-button link :type="row.status === 1 ? 'danger' : 'success'" @click="toggleStatus((row as UserVO))">
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
-            <el-button link type="danger" @click="removeUser(row)">删除</el-button>
+            <el-button link type="danger" @click="removeUser((row as UserVO))">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

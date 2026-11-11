@@ -349,6 +349,7 @@ npm run e2e:all          # 依次跑完六个
 | 答辩演示脚本 | `docs/答辩演示脚本.md` |
 | 答辩素材截图 | `docs/答辩素材/` |
 | 前端架构说明 | `docs/design/前端架构说明.md` |
+| 首屏加载优化 | `docs/design/首屏加载优化.md` |
 | 前端问卷模块说明 | `docs/design/前端问卷模块说明.md` |
 | 前端统计模块说明 | `docs/design/前端统计模块说明.md` |
 | 前端模板模块说明 | `docs/design/前端模板模块说明.md` |
