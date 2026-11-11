@@ -253,12 +253,14 @@ npm run e2e:all          # 依次跑完六个
 - [x] 文档（`docs/design/前端系统配置模块说明.md`）
 - [x] 用户 Excel 批量导入：模板下载、逐行小事务、同文件内重复学号检出、错误精确到行号、明确拒绝导入管理员
 - [x] 部署产物：`deploy/docker-compose.yml` + 后端/前端 Dockerfile + nginx 配置（静态托管与 `/api` 反代同源）
+- [x] Docker 编排真机验证：`docker compose up -d --build` 三容器全部 healthy，经 nginx 全链路实测（登录/建卷/发布/填写/统计/导出/模板/日志/配置）
 - [x] 压测脚本（`deploy/test/loadtest.py`）与 100 并发 5 分钟报告，SRS 六条通过条件逐条取证
 - [x] 长稳测试脚本（`deploy/test/soak.py`）：按小时切分故障率、JVM GC 采样（`jstat`，不 STW）
 - [x] 接口文档（springdoc-openapi）：`/swagger-ui.html` 可交互，72 个接口按业务域分组
 - [x] 数据库设计文档（`docs/design/数据库设计.md`）：17 张表逐表说明、24 条索引对应真实查询、11 条关键决策
 - [x] 测试用例与执行结果（`docs/test/测试用例与执行结果.md`）：P0 逐条对照 + 16 个缺陷的根因与修法
-- [x] 部署文档（`docs/deploy/部署文档.md`）：Docker 一键启动 + 本机手动启动 + 11 条生产注意事项
+- [x] 部署文档（`docs/deploy/部署文档.md`）：云服务器选型与用 IP 上线、Docker 一键启动、本机手动启动、域名与 HTTPS 迁移、11 条生产检查项、17 条故障排查
+- [x] 凭据全部改为环境变量注入：仓库内无任何默认数据库密码或 JWT 密钥，缺失即启动失败
 - [x] 答辩材料：16 页 PPT（`docs/答辩PPT.pptx`）、演示脚本（对应 AC-01~03）、12 张页面截图
 
 ## 待完成
@@ -266,10 +268,11 @@ npm run e2e:all          # 依次跑完六个
 - [ ] 24 小时长稳测试跑满并定稿报告（本次运行中：2026-11-09 12:09 起跑，2026-11-10 12:09 结束，
       结束后 `deploy/test/soak.py` 会自动写 `docs/test/长稳测试报告.md` 与 `soak-result.json`。
       期间**不能重启后端**，否则 JVM 采样与「无重启」这条判定都失去意义）
-- [ ] docker daemon 启动后实际 `build` / `up` 验证 compose 编排。**本机没有安装 Docker Desktop**
-      （只有 docker CLI 29.7.2，`docker info` 连不上 `npipe:////./pipe/dockerDesktopLinuxEngine`），
-      目前只做了 `docker compose config --quiet` 静态语法校验，Dockerfile 与 nginx 配置未经真实构建。
-      这是已知的、已写进部署文档与测试文档的限制
+- [x] ~~docker daemon 验证 compose 编排~~ 已完成：本机 Docker Desktop 实际位置是
+      `C:\Users\<用户>\AppData\Local\Programs\DockerDesktop\`（不在 `C:\Program Files\Docker\`），
+      启动后 `docker compose up -d --build` 通过，三容器 healthy。过程中发现并修掉 6 个
+      只在全新部署才暴露的缺陷（漏挂 05 脚本、05 缺 USE、容器中文双重编码、JWT 环境变量不生效、
+      nginx 只监听 IPv4 导致 unhealthy、API 文档被 SPA 回落成假 200）
 - [ ] 指标二（长期运行故障率 < 0.1%）的第二种取证方式：Nginx access log 按 3 天实际使用统计
       （需要真实流量，课程环境下无法提供，报告中已说明这一条只有 24h 压测证据）
 
