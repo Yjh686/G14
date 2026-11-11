@@ -1,0 +1,27 @@
+# =============================================================================
+# MySQL 客户端字符集兜底
+#
+# 为什么需要这个文件：
+#   MySQL 官方镜像的 docker-entrypoint.sh 执行 /docker-entrypoint-initdb.d/*.sql
+#   时，调用的是不带 --default-character-set 的 mysql 客户端（见
+#   docker_process_sql 函数）。而容器里没有设置 LANG，glibc 环境下 mysql 客户端
+#   于是默认使用 latin1。
+#
+#   后果：建表脚本是 UTF-8 编码的，里面的中文（角色名「教师」、权限名
+#   「创建问卷」、演示账号「张老师」、站点名「校园问卷系统」）会被当作 latin1
+#   逐字节读入、再按 utf8mb4 存储，形成典型的双重编码乱码：
+#       校园问卷系统  ->  æ ¡å›­é—®å·ç³»ç»Ÿ
+#   数据一旦这样写进去，接口读出来就是乱码，只能删库重建。
+#
+#   这个文件把客户端默认字符集钉死为 utf8mb4，不依赖 LANG 环境变量。
+#   compose 里同时设置了 LANG=C.UTF-8，两道保险取其一都能正确工作。
+# =============================================================================
+
+[client]
+default-character-set = utf8mb4
+
+[mysql]
+default-character-set = utf8mb4
+
+[mysqldump]
+default-character-set = utf8mb4

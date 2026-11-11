@@ -3,6 +3,12 @@
 -- 执行：mysql -u root -p --default-character-set=utf8mb4 "G14(1)" -e "source 05_schema_config.sql"
 -- =============================================================
 
+-- 必须自带 USE：本脚本也被挂载进 MySQL 容器的 /docker-entrypoint-initdb.d/，
+-- 而 compose 没有设置 MYSQL_DATABASE，官方 entrypoint 调 mysql 客户端时不带
+-- 默认库，缺少这一行会直接 ERROR 1046 (3D000) No database selected，
+-- 容器初始化失败、整站起不来。
+USE `G14(1)`;
+
 CREATE TABLE IF NOT EXISTS sys_config (
     id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     config_key   VARCHAR(64)     NOT NULL COMMENT '配置键，如 site.name',

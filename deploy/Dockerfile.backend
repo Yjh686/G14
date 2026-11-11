@@ -14,12 +14,31 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /build
 
+# 用阿里云镜像源拉 Maven 依赖。
+# 国内直连 repo.maven.apache.org 经常几十 KB/s，一个 Spring Boot 工程要下
+# 上百个包，实际会卡到十分钟以上甚至超时失败；镜像源能把这一步压到一两分钟。
+# 放在 COPY pom.xml 之前，这样改代码不会让这一层失效。
+# 用 printf 而不是 heredoc：heredoc 依赖 BuildKit 的 dockerfile:1.4 语法，
+# 老一点的 docker 或关掉 BuildKit 时会直接报解析错误。
+RUN mkdir -p /root/.m2 \
+    && printf '%s\n' \
+      '<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">' \
+      '  <mirrors>' \
+      '    <mirror>' \
+      '      <id>aliyun</id>' \
+      '      <url>https://maven.aliyun.com/repository/public</url>' \
+      '      <mirrorOf>central</mirrorOf>' \
+      '    </mirror>' \
+      '  </mirrors>' \
+      '</settings>' > /root/.m2/settings.xml
+
 # 先只拷 pom.xml 并预热依赖：只要 pom 没变，改代码后重建可以直接命中这层缓存，
 # 不用重新下载几十 MB 的依赖。这是分层构建最关键的一条优化。
 COPY backend/pom.xml .
 RUN mvn -B -q dependency:go-offline
 
 COPY backend/src ./src
+# -DskipTests：单元测试在提交前已跑过，镜像构建里再跑一遍只会让部署变慢
 RUN mvn -B -q clean package -DskipTests
 
 # ------------------------------- 运行阶段 -------------------------------
@@ -33,6 +52,14 @@ ENV TZ=Asia/Shanghai \
     JAVA_OPTS="-XX:MaxRAMPercentage=75 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# 健康检查要用 wget / curl 之一，而 eclipse-temurin 的 jammy 基础镜像两个都不带
+# （不像 nginx:alpine 自带 busybox wget）。这里显式装 wget：不到 2MB，
+# 且比在 healthcheck 里拼 bash /dev/tcp 稳。没有它 healthcheck 永远失败，
+# 容器会一直显示 unhealthy —— 服务其实是好的，但 `docker compose ps` 看着像挂了。
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
 
 # 以非 root 运行：应用只需要写 /app/logs，没有理由给它 root 权限
 RUN groupadd -r app && useradd -r -g app -d /app app \

@@ -1,0 +1,41 @@
+# =============================================================================
+# 构建上下文排除清单
+#
+# 为什么必须有这个文件：compose 里 backend / frontend 的 build.context 都是仓库
+# 根目录（两个镜像要同时看到 backend/、frontend/、deploy/）。没有排除清单时
+# 每次 build 都会把 node_modules(258MB) 与 target(55MB) 一起打包进上下文：
+#   1. 构建慢一个数量级；
+#   2. 更严重的是 Dockerfile.frontend 里 `COPY frontend/G14/ ./` 会把本机
+#      Windows 版 node_modules 覆盖到容器内，esbuild / rollup 的二进制是平台
+#      相关的，构建会直接失败或产出坏包。
+# =============================================================================
+
+# 依赖与构建产物：容器内会自己 npm ci / mvn package 重新生成
+**/node_modules
+**/dist
+**/dist-ssr
+**/target
+**/coverage
+**/*.tsbuildinfo
+
+# VCS 与编辑器
+.git
+.gitignore
+**/.idea
+**/*.iml
+**/.vscode
+**/.DS_Store
+**/Thumbs.db
+
+# Python 缓存（deploy/test 下有 Python 压测脚本）
+**/__pycache__
+**/*.pyc
+
+# 日志不进镜像
+**/*.log
+logs
+
+# 文档与答辩材料不参与构建，少几十 MB 上下文
+docs
+*.md
+!README.md

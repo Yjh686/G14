@@ -57,7 +57,7 @@ mybatis-plus:
 app:
   jwt:
     # HS256 密钥，明文，UTF-8 编码后必须 >= 32 字节。生产环境请用环境变量覆盖。
-    secret: "campus-survey-G14-1-jwt-secret-key-2025-do-not-share"
+    secret: ${APP_JWT_SECRET:campus-survey-G14-1-jwt-secret-key-2025-do-not-share}
     # 令牌有效期（分钟），默认 12 小时
     expire-minutes: 720
   security:
@@ -65,8 +65,11 @@ app:
     max-login-fail: 5
     # 锁定时长（分钟）
     lock-minutes: 15
-    # ADMIN 重置密码后的默认密码
-    default-password: "G14@init2025"
+    # 注意：默认密码与密码强度规则不在这里配置。
+    # FR-CFG-02 要求管理员能在页面上改，所以真实来源是 sys_config 表
+    # （security.default-password / security.password.*），由 ConfigService 读取。
+    # 这里若再留一份 app.security.default-password，就会出现「yml 说 A、页面显示 B」
+    # 的两套真相，改完还不生效，所以删掉。
     # 用户权限快照缓存秒数（改密/禁用会主动失效，这里是兜底 TTL）
     perm-cache-seconds: 60
 

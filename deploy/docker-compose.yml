@@ -24,6 +24,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       TZ: Asia/Shanghai
+      # 必须有 LANG：官方 entrypoint 执行 initdb 脚本时调用的 mysql 客户端
+      # 不带 --default-character-set，字符集取决于 locale。没有 LANG 时
+      # 客户端默认 latin1，UTF-8 的中文 SQL 会被双重编码成乱码
+      # （「校园问卷系统」→「æ ¡å›­é—®å·ç³»ç»Ÿ」），且会一路写进库里。
+      # client-charset.cnf 是第二道保险，两者任一生效即可。
+      LANG: C.UTF-8
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_general_ci
@@ -35,16 +41,23 @@ services:
       - --sync-binlog=1
     volumes:
       - mysql-data:/var/lib/mysql
-      # 建表脚本按文件名顺序执行（01 → 02 → 03 → 04）。
+      # 客户端字符集兜底配置（详见文件内注释）。容器没有 LANG 时
+      # mysql 客户端会默认 latin1，把 UTF-8 建表脚本里的中文写成乱码。
+      - ./mysql/client-charset.cnf:/etc/mysql/conf.d/client-charset.cnf:ro
+      # 建表脚本按文件名顺序执行（01 → 02 → 03 → 04 → 05）。
       # 90_cleanup_test_data.sql 不在挂载范围内 —— 它是给开发期清测试数据用的，
       # 放进初始化目录会在每次全新部署时把演示数据一起删掉。
       - ./sql/01_schema_auth.sql:/docker-entrypoint-initdb.d/01_schema_auth.sql:ro
       - ./sql/02_schema_survey.sql:/docker-entrypoint-initdb.d/02_schema_survey.sql:ro
       - ./sql/03_schema_answer.sql:/docker-entrypoint-initdb.d/03_schema_answer.sql:ro
       - ./sql/04_schema_template.sql:/docker-entrypoint-initdb.d/04_schema_template.sql:ro
+      - ./sql/05_schema_config.sql:/docker-entrypoint-initdb.d/05_schema_config.sql:ro
     ports:
-      # 只映射到本机回环，避免把数据库直接暴露到校园网
-      - "127.0.0.1:3306:3306"
+      # 只映射到回环，避免把数据库直接暴露到公网。
+      # 之所以做成变量：本机若已装 MySQL 占着 3306（开发机很常见），
+      # 直接写死 3306 会让 compose 起不来，报 "port is already allocated"。
+      # 生产机上没必要对外暴露 MySQL，可以整行删掉或用 127.0.0.1:13306:3306。
+      - "${MYSQL_PUBLISH:-127.0.0.1:3306:3306}"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
       interval: 10s
@@ -69,11 +82,22 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       APP_JWT_SECRET: ${APP_JWT_SECRET:-campus-survey-G14-1-jwt-secret-key-2025-do-not-share}
-      APP_SECURITY_DEFAULT_PASSWORD: ${APP_DEFAULT_PASSWORD:-G14@init2025}
+      # 注意这里没有 APP_SECURITY_DEFAULT_PASSWORD：
+      # 默认密码与密码强度规则是 FR-CFG-02 的「可在线修改」项，真实来源是
+      # sys_config 表（由 05_schema_config.sql 初始化），只能登录后在
+      # 「系统配置」页改。再放一个环境变量只会造成「改了 compose 却不生效」。
       LOGGING_FILE_NAME: /app/logs/app.log
+      # 堆大小跟着下面的 mem_limit 走：MaxRAMPercentage 取的是「容器可见内存」，
+      # 没设 mem_limit 时它看到的是宿主机内存（比如 16G），堆会按 12G 去要，
+      # 在只有 2G 的云主机上直接被 OOM Killer 干掉，而且报错信息里看不到原因。
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai}
+    mem_limit: ${BACKEND_MEM:-1g}
     ports:
-      # 同样只映射回环：外部一律走 frontend 的 80 端口，backend 不该被直接访问
-      - "127.0.0.1:8080:8080"
+      # 同样只映射回环：外部一律走 frontend 的 80 端口，backend 不该被直接访问。
+      # 这个映射纯粹是给运维排障用的（curl 127.0.0.1:8080/api/health 能绕过 nginx）。
+      # 套了宿主机 HTTPS 反代时，把它改成 127.0.0.1:18080:8080 之类，
+      # 避免和 frontend 抢端口时看不出来谁占了 8080。
+      - "${BACKEND_PUBLISH:-127.0.0.1:8080:8080}"
     volumes:
       - backend-logs:/app/logs
     healthcheck:
@@ -94,7 +118,11 @@ services:
       backend:
         condition: service_started
     ports:
-      - "${HTTP_PORT:-80}:80"
+      # 默认 80:80，直接对外可访问。
+      # 如果要在宿主机上再套一层 nginx 做 HTTPS（推荐做法，证书续期最省事），
+      # 就把 FRONTEND_PUBLISH 写成 127.0.0.1:8080:80 —— 容器只听回环，
+      # 公网 80/443 全部交给宿主机的 nginx 和 certbot。
+      - "${FRONTEND_PUBLISH:-80:80}"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
       interval: 15s
