@@ -98,7 +98,30 @@ Write-Host "==============================================" -ForegroundColor Gre
 Write-Host "  公网地址：$url" -ForegroundColor Green
 Write-Host "==============================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "手机浏览器直接打开上面的地址即可（可以用 4G 流量）。" -ForegroundColor Gray
+# 地址很长，手打不现实。有 segno（pip install segno）就直接在终端印二维码，
+# 没有就退化成提示，不影主流程。
+$qrShown = $false
+$py = (Get-Command python -ErrorAction SilentlyContinue)
+if ($py) {
+    $code = "import sys
+try:
+    import segno
+except ImportError:
+    sys.exit(1)
+segno.make(sys.argv[1], error='m').terminal(compact=True)"
+    $tmp = Join-Path $env:TEMP 'g14-qr.py'
+    [System.IO.File]::WriteAllText($tmp, $code, [System.Text.Encoding]::UTF8)
+    & python $tmp $url
+    if ($LASTEXITCODE -eq 0) { $qrShown = $true }
+}
+
+if ($qrShown) {
+    Write-Host ""
+    Write-Host "用手机相机扫上面这个二维码即可（不必手打地址）。" -ForegroundColor Green
+} else {
+    Write-Host "手机浏览器直接打开上面的地址即可（可以用 4G 流量）。" -ForegroundColor Gray
+    Write-Host "想把地址变成二维码：python -m pip install segno，然后重跑本脚本。" -ForegroundColor DarkGray
+}
 Write-Host "注意：" -ForegroundColor Yellow
 Write-Host "  · 这个地址是随机的，每次启动都会变" -ForegroundColor Gray
 Write-Host "  · 关掉本窗口或重启电脑后地址立即失效" -ForegroundColor Gray
