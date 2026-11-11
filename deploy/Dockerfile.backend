@@ -1,0 +1,49 @@
+# =============================================================================
+# 后端镜像：多阶段构建
+#
+# 阶段 1 用 Maven 镜像编译打包，阶段 2 只把 jar 拷进 JRE 镜像。
+# 为什么要分两阶段：Maven + 本地仓库约 700MB，而运行只需要 200MB 的 JRE。
+# 单阶段构建出来的镜像会把整条工具链一起带上，答辩环境里拉镜像要多等好几分钟。
+#
+# 构建：docker build -f deploy/Dockerfile.backend -t g14/backend .
+#       注意 context 是仓库根目录（build 时要能同时看到 backend/ 与 deploy/）
+# =============================================================================
+
+# ------------------------------- 构建阶段 -------------------------------
+FROM maven:3.9-eclipse-temurin-17 AS build
+
+WORKDIR /build
+
+# 先只拷 pom.xml 并预热依赖：只要 pom 没变，改代码后重建可以直接命中这层缓存，
+# 不用重新下载几十 MB 的依赖。这是分层构建最关键的一条优化。
+COPY backend/pom.xml .
+RUN mvn -B -q dependency:go-offline
+
+COPY backend/src ./src
+RUN mvn -B -q clean package -DskipTests
+
+# ------------------------------- 运行阶段 -------------------------------
+FROM eclipse-temurin:17-jre-jammy
+
+WORKDIR /app
+
+# 时区必须显式设置：容器默认 UTC，而日志、答卷提交时间、令牌过期都按东八区算，
+# 不设的话「今天」的统计会从早上 8 点开始算。
+ENV TZ=Asia/Shanghai \
+    JAVA_OPTS="-XX:MaxRAMPercentage=75 -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# 以非 root 运行：应用只需要写 /app/logs，没有理由给它 root 权限
+RUN groupadd -r app && useradd -r -g app -d /app app \
+    && mkdir -p /app/logs && chown -R app:app /app
+
+COPY --from=build --chown=app:app /build/target/backend1-*.jar /app/app.jar
+
+USER app
+
+EXPOSE 8080
+
+# exec 形式（shell 里套 exec）让 java 成为 1 号进程，能直接收到 SIGTERM，
+# docker compose down 时才会优雅关闭连接池而不是等 10 秒被 SIGKILL。
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

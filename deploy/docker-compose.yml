@@ -1,0 +1,106 @@
+# =============================================================================
+# 校园问卷信息调查管理系统 —— 生产部署编排
+#
+# 三个容器：
+#   mysql     数据存储，首次启动自动执行 deploy/sql/*.sql 建表与初始化
+#   backend   Spring Boot 应用（java -jar），前端不直接访问它
+#   frontend  Nginx：托管 Vue 静态产物 + 把 /api 反代到 backend
+#
+# 为什么前端容器同时承担反向代理：
+#   浏览器只需要认一个地址。如果让浏览器直接打 backend 的 8080，
+#   前端就要写死后端域名、还得配 CORS；现在同源，CORS 配置与
+#   前端 baseURL 都能保持 /api 不变，开发和生产的差异只剩「谁在代理」。
+#
+# 启动：docker compose up -d --build
+# 查看：docker compose ps / docker compose logs -f backend
+# 停止：docker compose down          （加 -v 会连数据一起删）
+# =============================================================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: g14-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --default-time-zone=+08:00
+      # 与开发环境保持一致：验收时的压测结论是在这两个参数下测出来的。
+      # 想换取写入吞吐可以改成 2 与 0，但那会牺牲崩溃时最近 1 秒事务的持久性，
+      # 属于拿正确性换性能，不能默认打开（详见 docs/test/压测报告.md 第 8 节）。
+      - --innodb-flush-log-at-trx-commit=1
+      - --sync-binlog=1
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 建表脚本按文件名顺序执行（01 → 02 → 03 → 04）。
+      # 90_cleanup_test_data.sql 不在挂载范围内 —— 它是给开发期清测试数据用的，
+      # 放进初始化目录会在每次全新部署时把演示数据一起删掉。
+      - ./sql/01_schema_auth.sql:/docker-entrypoint-initdb.d/01_schema_auth.sql:ro
+      - ./sql/02_schema_survey.sql:/docker-entrypoint-initdb.d/02_schema_survey.sql:ro
+      - ./sql/03_schema_answer.sql:/docker-entrypoint-initdb.d/03_schema_answer.sql:ro
+      - ./sql/04_schema_template.sql:/docker-entrypoint-initdb.d/04_schema_template.sql:ro
+    ports:
+      # 只映射到本机回环，避免把数据库直接暴露到校园网
+      - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    container_name: g14-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: Asia/Shanghai
+      # Spring Boot 的宽松绑定：环境变量会覆盖 application.yml 里的同名配置。
+      # 库名带括号，JDBC URL 里必须转义成 %28 %29，否则驱动会把括号当语法。
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/G14%281%29?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true"
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      APP_JWT_SECRET: ${APP_JWT_SECRET:-campus-survey-G14-1-jwt-secret-key-2025-do-not-share}
+      APP_SECURITY_DEFAULT_PASSWORD: ${APP_DEFAULT_PASSWORD:-G14@init2025}
+      LOGGING_FILE_NAME: /app/logs/app.log
+    ports:
+      # 同样只映射回环：外部一律走 frontend 的 80 端口，backend 不该被直接访问
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - backend-logs:/app/logs
+    healthcheck:
+      # 用 wget 而不是 curl：eclipse-temurin 基础镜像不带 curl，装了又是几十 MB
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.frontend
+    container_name: g14-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
+  backend-logs:

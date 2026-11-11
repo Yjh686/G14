@@ -1,0 +1,1809 @@
+{
+ "sys_user": {
+  "name": "sys_user",
+  "cn": "用户表",
+  "module": "认证与权限",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "username",
+    "type": "VARCHAR(64)",
+    "not_null": true,
+    "default": "",
+    "comment": "登录账号：学号/工号/管理员账号",
+    "auto_increment": false,
+    "keys": [
+     "UK"
+    ]
+   },
+   {
+    "name": "password_hash",
+    "type": "VARCHAR(100)",
+    "not_null": true,
+    "default": "",
+    "comment": "BCrypt 密码哈希（$2a$10$...）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "real_name",
+    "type": "VARCHAR(64)",
+    "not_null": true,
+    "default": "",
+    "comment": "姓名",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "status",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "1",
+    "comment": "状态：1=正常 0=禁用",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "audit_status",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "1",
+    "comment": "审核状态：0=待审核 1=已通过 2=已驳回（ADMIN 导入默认已通过）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "must_change_password",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "0",
+    "comment": "是否强制下次登录改密：1=是 0=否",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "phone",
+    "type": "VARCHAR(20)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "手机号",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "email",
+    "type": "VARCHAR(128)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "邮箱",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "department",
+    "type": "VARCHAR(128)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "院系/班级",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "token_version",
+    "type": "INT",
+    "not_null": true,
+    "default": "0",
+    "comment": "令牌版本：改密/重置/禁用时+1，使旧 JWT 立即失效",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "login_fail_count",
+    "type": "INT",
+    "not_null": true,
+    "default": "0",
+    "comment": "连续登录失败次数",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "locked_until",
+    "type": "DATETIME",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "锁定截止时间，NULL=未锁定",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "last_login_time",
+    "type": "DATETIME",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "最近一次登录成功时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "audit_remark",
+    "type": "VARCHAR(255)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "审核意见（驳回原因）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "remark",
+    "type": "VARCHAR(255)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "备注",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "deleted",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "0",
+    "comment": "逻辑删除：0=未删 1=已删",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "创建人 ID",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "更新人 ID",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+    "comment": "更新时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_username",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "username"
+    ]
+   },
+   {
+    "name": "idx_status",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "status",
+     "deleted"
+    ]
+   },
+   {
+    "name": "idx_audit",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "audit_status",
+     "deleted"
+    ]
+   },
+   {
+    "name": "idx_phone",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "phone"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "sys_role": {
+  "name": "sys_role",
+  "cn": "角色表",
+  "module": "认证与权限",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "code",
+    "type": "VARCHAR(32)",
+    "not_null": true,
+    "default": "",
+    "comment": "角色码：ROLE_ADMIN/ROLE_TEACHER/ROLE_STUDENT",
+    "auto_increment": false,
+    "keys": [
+     "UK"
+    ]
+   },
+   {
+    "name": "name",
+    "type": "VARCHAR(32)",
+    "not_null": true,
+    "default": "",
+    "comment": "角色名称",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "description",
+    "type": "VARCHAR(255)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "说明",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "builtin",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "1",
+    "comment": "是否内置角色：1=是，不可删除",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_code",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "code"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "sys_permission": {
+  "name": "sys_permission",
+  "cn": "权限字典表",
+  "module": "认证与权限",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "code",
+    "type": "VARCHAR(64)",
+    "not_null": true,
+    "default": "",
+    "comment": "权限码：模块:动作[:范围]",
+    "auto_increment": false,
+    "keys": [
+     "UK"
+    ]
+   },
+   {
+    "name": "name",
+    "type": "VARCHAR(64)",
+    "not_null": true,
+    "default": "",
+    "comment": "权限名称",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "module",
+    "type": "VARCHAR(32)",
+    "not_null": true,
+    "default": "",
+    "comment": "所属模块",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "description",
+    "type": "VARCHAR(255)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "说明",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_code",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "code"
+    ]
+   },
+   {
+    "name": "idx_module",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "module"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "sys_user_role": {
+  "name": "sys_user_role",
+  "cn": "用户-角色关联表",
+  "module": "认证与权限",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "user_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "用户 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "role_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "角色 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "sys_role.id"
+   },
+   {
+    "name": "create_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "操作人 ID",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_user_role",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "user_id",
+     "role_id"
+    ]
+   },
+   {
+    "name": "idx_role",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "role_id"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "sys_role_permission": {
+  "name": "sys_role_permission",
+  "cn": "角色-权限关联表",
+  "module": "认证与权限",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "role_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "角色 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "sys_role.id"
+   },
+   {
+    "name": "perm_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "权限 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "sys_permission.id"
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_role_perm",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "role_id",
+     "perm_id"
+    ]
+   },
+   {
+    "name": "idx_perm",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "perm_id"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "sys_user_permission": {
+  "name": "sys_user_permission",
+  "cn": "用户追加权限表",
+  "module": "认证与权限",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "user_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "用户 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "perm_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "权限 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "sys_permission.id"
+   },
+   {
+    "name": "grant_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "授予人 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "grant_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "授予时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "remark",
+    "type": "VARCHAR(255)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "授予原因",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_user_perm",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "user_id",
+     "perm_id"
+    ]
+   },
+   {
+    "name": "idx_perm",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "perm_id"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "sys_login_log": {
+  "name": "sys_login_log",
+  "cn": "登录日志表",
+  "module": "日志审计",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "user_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "用户 ID，账号不存在时为 NULL",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "username",
+    "type": "VARCHAR(64)",
+    "not_null": true,
+    "default": "",
+    "comment": "本次登录输入的账号",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "result",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "",
+    "comment": "结果：1=成功 0=失败",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "reason",
+    "type": "VARCHAR(64)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "失败原因",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "ip",
+    "type": "VARCHAR(64)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "客户端 IP",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "user_agent",
+    "type": "VARCHAR(255)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "User-Agent",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "发生时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "idx_username_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "username",
+     "create_time"
+    ]
+   },
+   {
+    "name": "idx_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "create_time"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "sys_operation_log": {
+  "name": "sys_operation_log",
+  "cn": "操作日志表",
+  "module": "日志审计",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "user_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "操作人 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "username",
+    "type": "VARCHAR(64)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "操作人账号（冗余，便于追溯）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "module",
+    "type": "VARCHAR(32)",
+    "not_null": true,
+    "default": "",
+    "comment": "模块",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "action",
+    "type": "VARCHAR(64)",
+    "not_null": true,
+    "default": "",
+    "comment": "动作编码",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "target_type",
+    "type": "VARCHAR(32)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "对象类型",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "target_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "对象 ID",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "detail",
+    "type": "VARCHAR(1000)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "详情（脱敏后）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "result",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "1",
+    "comment": "结果：1=成功 0=失败",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "ip",
+    "type": "VARCHAR(64)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "客户端 IP",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "发生时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "idx_user_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "user_id",
+     "create_time"
+    ]
+   },
+   {
+    "name": "idx_module_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "module",
+     "create_time"
+    ]
+   }
+  ],
+  "file": "01_schema_auth.sql"
+ },
+ "survey": {
+  "name": "survey",
+  "cn": "问卷主表",
+  "module": "问卷管理",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "title",
+    "type": "VARCHAR(120)",
+    "not_null": true,
+    "default": "",
+    "comment": "问卷标题",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "description",
+    "type": "VARCHAR(1000)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "问卷简介/填写说明",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "category",
+    "type": "VARCHAR(32)",
+    "not_null": true,
+    "default": "'OTHER'",
+    "comment": "分类：TEACHING 教学反馈 / ACTIVITY 活动报名 / SATISFACTION 满意度 / OTHER 其他",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "anonymous",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "0",
+    "comment": "是否匿名：1=匿名（发布者看不到填写人）0=实名",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "status",
+    "type": "VARCHAR(16)",
+    "not_null": true,
+    "default": "'DRAFT'",
+    "comment": "状态：DRAFT 草稿 / PUBLISHED 已发布 / PAUSED 已暂停 / CLOSED 已结束（删除由 deleted 表达，不在此列）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "share_code",
+    "type": "VARCHAR(16)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "分享码（8 位，发布时生成，全局唯一）",
+    "auto_increment": false,
+    "keys": [
+     "UK"
+    ]
+   },
+   {
+    "name": "start_time",
+    "type": "DATETIME",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "开始时间，NULL=立即开始",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "end_time",
+    "type": "DATETIME",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "截止时间，NULL=长期有效",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "limit_once",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "1",
+    "comment": "是否限填一次：1=每人一份 0=可重复填写",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "question_count",
+    "type": "INT",
+    "not_null": true,
+    "default": "0",
+    "comment": "题目数量（冗余，供列表页展示，避免 count 子查询）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "answer_count",
+    "type": "INT",
+    "not_null": true,
+    "default": "0",
+    "comment": "已回收答卷数（冗余，提交时 +1；无效/删除答卷在答卷模块扣减）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "published_time",
+    "type": "DATETIME",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "首次发布时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "closed_time",
+    "type": "DATETIME",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "结束时间（人为提前结束时记录）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "创建人（归属校验依据）",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "最后修改人",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+    "comment": "最后修改时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "deleted",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "0",
+    "comment": "逻辑删除：0=正常 1=已删除",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_share_code",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "share_code"
+    ]
+   },
+   {
+    "name": "idx_owner",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "create_by",
+     "status",
+     "deleted"
+    ]
+   },
+   {
+    "name": "idx_status_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "status",
+     "end_time"
+    ]
+   },
+   {
+    "name": "idx_create_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "create_time"
+    ]
+   },
+   {
+    "name": "idx_title",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "title"
+    ]
+   }
+  ],
+  "file": "02_schema_survey.sql"
+ },
+ "survey_question": {
+  "name": "survey_question",
+  "cn": "问卷题目表",
+  "module": "问卷管理",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "survey_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "所属问卷 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "survey.id"
+   },
+   {
+    "name": "question_type",
+    "type": "VARCHAR(16)",
+    "not_null": true,
+    "default": "",
+    "comment": "题型：SINGLE 单选 / MULTIPLE 多选 / TEXT 单行文本 / TEXTAREA 多行文本 / RATING 评分",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "title",
+    "type": "VARCHAR(255)",
+    "not_null": true,
+    "default": "",
+    "comment": "题干",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "description",
+    "type": "VARCHAR(500)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "题目补充说明",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "is_required",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "0",
+    "comment": "是否必答：1=必答 0=选答",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "max_length",
+    "type": "INT",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "文本题最大字数（仅 TEXT/TEXTAREA 有效）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "rating_max",
+    "type": "TINYINT",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "评分题最高分（仅 RATING 有效，默认 5）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "sort_no",
+    "type": "INT",
+    "not_null": true,
+    "default": "0",
+    "comment": "排序号，从 1 递增",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "创建人",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_by",
+    "type": "BIGINT UNSIGNED",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "最后修改人",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+    "comment": "最后修改时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "idx_survey_sort",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "survey_id",
+     "sort_no"
+    ]
+   }
+  ],
+  "file": "02_schema_survey.sql"
+ },
+ "survey_question_option": {
+  "name": "survey_question_option",
+  "cn": "问卷选项表",
+  "module": "问卷管理",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "question_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "所属题目 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "survey_question.id"
+   },
+   {
+    "name": "survey_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "所属问卷 ID（冗余，便于按问卷聚合统计）",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "survey.id"
+   },
+   {
+    "name": "content",
+    "type": "VARCHAR(255)",
+    "not_null": true,
+    "default": "",
+    "comment": "选项文本",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "sort_no",
+    "type": "INT",
+    "not_null": true,
+    "default": "0",
+    "comment": "排序号，从 1 递增",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "idx_question_sort",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "question_id",
+     "sort_no"
+    ]
+   },
+   {
+    "name": "idx_survey",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "survey_id"
+    ]
+   }
+  ],
+  "file": "02_schema_survey.sql"
+ },
+ "answer_sheet": {
+  "name": "answer_sheet",
+  "cn": "答卷头表",
+  "module": "答卷与统计",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键，同时作为答卷编号对外展示",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "survey_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "所属问卷",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "survey.id"
+   },
+   {
+    "name": "user_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "填写人。匿名问卷同样写入，仅用于限填一次与「我的记录」；任何面向发布者的接口都不得返回该字段",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "limit_once",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "1",
+    "comment": "提交时对 survey.limit_once 的快照，决定是否占用唯一槽位",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "is_valid",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "1",
+    "comment": "是否有效：1=有效（计入统计）0=已标记无效",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "invalid_reason",
+    "type": "VARCHAR(255)",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "标记无效的原因",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "提交时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+    "comment": "最后修改时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "deleted",
+    "type": "TINYINT",
+    "not_null": true,
+    "default": "0",
+    "comment": "逻辑删除：0=正常 1=已删除",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "uniq_user",
+    "type": "BIGINT UNSIGNED GENERATED ALWAYS AS (...) STORED",
+    "not_null": false,
+    "default": "",
+    "comment": "唯一槽位（生成列）：限填一次时=填写人，否则 NULL",
+    "auto_increment": false,
+    "keys": [
+     "UQ*"
+    ]
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_survey_user",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "survey_id",
+     "uniq_user"
+    ]
+   },
+   {
+    "name": "idx_survey_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "survey_id",
+     "deleted",
+     "create_time"
+    ]
+   },
+   {
+    "name": "idx_user_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "user_id",
+     "create_time"
+    ]
+   }
+  ],
+  "file": "03_schema_answer.sql"
+ },
+ "answer_item": {
+  "name": "answer_item",
+  "cn": "答案明细表",
+  "module": "答卷与统计",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "sheet_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "所属答卷",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "answer_sheet.id"
+   },
+   {
+    "name": "survey_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "冗余问卷 ID，统计时按问卷直接聚合，免一次 join",
+    "auto_increment": false,
+    "keys": [
+     "FK"
+    ],
+    "ref": "survey.id"
+   },
+   {
+    "name": "question_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "题目 ID",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "survey_question.id"
+   },
+   {
+    "name": "option_values",
+    "type": "JSON",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "选项类答案：选项 ID 数组，如 [12,15]；单选也存数组，统一取值方式",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "text_value",
+    "type": "TEXT",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "文本题答案",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "number_value",
+    "type": "INT",
+    "not_null": false,
+    "default": "NULL",
+    "comment": "评分题分值（1..rating_max）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "创建时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_sheet_question",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "sheet_id",
+     "question_id"
+    ]
+   },
+   {
+    "name": "idx_survey_question",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "survey_id",
+     "question_id"
+    ]
+   },
+   {
+    "name": "idx_sheet",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "sheet_id"
+    ]
+   }
+  ],
+  "file": "03_schema_answer.sql"
+ },
+ "survey_draft": {
+  "name": "survey_draft",
+  "cn": "填写草稿表",
+  "module": "答卷与统计",
+  "columns": [
+   {
+    "name": "id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "主键",
+    "auto_increment": true,
+    "keys": [
+     "PK"
+    ]
+   },
+   {
+    "name": "survey_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "所属问卷",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "survey.id"
+   },
+   {
+    "name": "user_id",
+    "type": "BIGINT UNSIGNED",
+    "not_null": true,
+    "default": "",
+    "comment": "填写人",
+    "auto_increment": false,
+    "keys": [
+     "FK",
+     "UQ*"
+    ],
+    "ref": "sys_user.id"
+   },
+   {
+    "name": "answers_json",
+    "type": "JSON",
+    "not_null": true,
+    "default": "",
+    "comment": "整卷作答 JSON，结构与提交请求一致，允许缺题（未答完）",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "create_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP",
+    "comment": "首次保存时间",
+    "auto_increment": false,
+    "keys": []
+   },
+   {
+    "name": "update_time",
+    "type": "DATETIME",
+    "not_null": true,
+    "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+    "comment": "最后保存时间",
+    "auto_increment": false,
+    "keys": []
+   }
+  ],
+  "indexes": [
+   {
+    "name": "PRIMARY",
+    "unique": true,
+    "primary": true,
+    "cols": [
+     "id"
+    ]
+   },
+   {
+    "name": "uk_survey_user",
+    "unique": true,
+    "primary": false,
+    "cols": [
+     "survey_id",
+     "user_id"
+    ]
+   },
+   {
+    "name": "idx_user_time",
+    "unique": false,
+    "primary": false,
+    "cols": [
+     "user_id",
+     "update_time"
+    ]
+   }
+  ],
+  "file": "03_schema_answer.sql"
+ }
+}

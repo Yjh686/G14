@@ -1,0 +1,190 @@
+sys_user | 用户表 | 认证与权限 | 21 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    username           VARCHAR(64)                                UK         nn=1 def=         登录账号：学号/工号/管理员账号
+    password_hash      VARCHAR(100)                               -          nn=1 def=         BCrypt 密码哈希（$2a$10$...）
+    real_name          VARCHAR(64)                                -          nn=1 def=         姓名
+    status             TINYINT                                    -          nn=1 def=1        状态：1=正常 0=禁用
+    audit_status       TINYINT                                    -          nn=1 def=1        审核状态：0=待审核 1=已通过 2=已驳回（ADMIN 导入默认已通过）
+    must_change_password TINYINT                                    -          nn=1 def=0        是否强制下次登录改密：1=是 0=否
+    phone              VARCHAR(20)                                -          nn=0 def=NULL     手机号
+    email              VARCHAR(128)                               -          nn=0 def=NULL     邮箱
+    department         VARCHAR(128)                               -          nn=0 def=NULL     院系/班级
+    token_version      INT                                        -          nn=1 def=0        令牌版本：改密/重置/禁用时+1，使旧 JWT 立即失效
+    login_fail_count   INT                                        -          nn=1 def=0        连续登录失败次数
+    locked_until       DATETIME                                   -          nn=0 def=NULL     锁定截止时间，NULL=未锁定
+    last_login_time    DATETIME                                   -          nn=0 def=NULL     最近一次登录成功时间
+    audit_remark       VARCHAR(255)                               -          nn=0 def=NULL     审核意见（驳回原因）
+    remark             VARCHAR(255)                               -          nn=0 def=NULL     备注
+    deleted            TINYINT                                    -          nn=1 def=0        逻辑删除：0=未删 1=已删
+    create_by          BIGINT UNSIGNED                            -          nn=0 def=NULL     创建人 ID
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    update_by          BIGINT UNSIGNED                            -          nn=0 def=NULL     更新人 ID
+    update_time        DATETIME                                   -          nn=1 def=CURRENT_ 更新时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_username            username                                 uniq=1 pk=0
+    IDX idx_status             status,deleted                           uniq=0 pk=0
+    IDX idx_audit              audit_status,deleted                     uniq=0 pk=0
+    IDX idx_phone              phone                                    uniq=0 pk=0
+sys_role | 角色表 | 认证与权限 | 6 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    code               VARCHAR(32)                                UK         nn=1 def=         角色码：ROLE_ADMIN/ROLE_TEACHER/ROLE_STUDENT
+    name               VARCHAR(32)                                -          nn=1 def=         角色名称
+    description        VARCHAR(255)                               -          nn=0 def=NULL     说明
+    builtin            TINYINT                                    -          nn=1 def=1        是否内置角色：1=是，不可删除
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_code                code                                     uniq=1 pk=0
+sys_permission | 权限字典表 | 认证与权限 | 6 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    code               VARCHAR(64)                                UK         nn=1 def=         权限码：模块:动作[:范围]
+    name               VARCHAR(64)                                -          nn=1 def=         权限名称
+    module             VARCHAR(32)                                -          nn=1 def=         所属模块
+    description        VARCHAR(255)                               -          nn=0 def=NULL     说明
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_code                code                                     uniq=1 pk=0
+    IDX idx_module             module                                   uniq=0 pk=0
+sys_user_role | 用户-角色关联表 | 认证与权限 | 5 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    user_id            BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         用户 ID
+    role_id            BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         角色 ID
+    create_by          BIGINT UNSIGNED                            -          nn=0 def=NULL     操作人 ID
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_user_role           user_id,role_id                          uniq=1 pk=0
+    IDX idx_role               role_id                                  uniq=0 pk=0
+sys_role_permission | 角色-权限关联表 | 认证与权限 | 4 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    role_id            BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         角色 ID
+    perm_id            BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         权限 ID
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_role_perm           role_id,perm_id                          uniq=1 pk=0
+    IDX idx_perm               perm_id                                  uniq=0 pk=0
+sys_user_permission | 用户追加权限表 | 认证与权限 | 6 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    user_id            BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         用户 ID
+    perm_id            BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         权限 ID
+    grant_by           BIGINT UNSIGNED                            FK         nn=0 def=NULL     授予人 ID
+    grant_time         DATETIME                                   -          nn=1 def=CURRENT_ 授予时间
+    remark             VARCHAR(255)                               -          nn=0 def=NULL     授予原因
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_user_perm           user_id,perm_id                          uniq=1 pk=0
+    IDX idx_perm               perm_id                                  uniq=0 pk=0
+sys_login_log | 登录日志表 | 日志审计 | 8 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    user_id            BIGINT UNSIGNED                            FK         nn=0 def=NULL     用户 ID，账号不存在时为 NULL
+    username           VARCHAR(64)                                -          nn=1 def=         本次登录输入的账号
+    result             TINYINT                                    -          nn=1 def=         结果：1=成功 0=失败
+    reason             VARCHAR(64)                                -          nn=0 def=NULL     失败原因
+    ip                 VARCHAR(64)                                -          nn=0 def=NULL     客户端 IP
+    user_agent         VARCHAR(255)                               -          nn=0 def=NULL     User-Agent
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 发生时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX idx_username_time      username,create_time                     uniq=0 pk=0
+    IDX idx_time               create_time                              uniq=0 pk=0
+sys_operation_log | 操作日志表 | 日志审计 | 11 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    user_id            BIGINT UNSIGNED                            FK         nn=0 def=NULL     操作人 ID
+    username           VARCHAR(64)                                -          nn=0 def=NULL     操作人账号（冗余，便于追溯）
+    module             VARCHAR(32)                                -          nn=1 def=         模块
+    action             VARCHAR(64)                                -          nn=1 def=         动作编码
+    target_type        VARCHAR(32)                                -          nn=0 def=NULL     对象类型
+    target_id          BIGINT UNSIGNED                            -          nn=0 def=NULL     对象 ID
+    detail             VARCHAR(1000)                              -          nn=0 def=NULL     详情（脱敏后）
+    result             TINYINT                                    -          nn=1 def=1        结果：1=成功 0=失败
+    ip                 VARCHAR(64)                                -          nn=0 def=NULL     客户端 IP
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 发生时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX idx_user_time          user_id,create_time                      uniq=0 pk=0
+    IDX idx_module_time        module,create_time                       uniq=0 pk=0
+survey | 问卷主表 | 问卷管理 | 19 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    title              VARCHAR(120)                               -          nn=1 def=         问卷标题
+    description        VARCHAR(1000)                              -          nn=0 def=NULL     问卷简介/填写说明
+    category           VARCHAR(32)                                -          nn=1 def='OTHER'  分类：TEACHING 教学反馈 / ACTIVITY 活动报名 / SATISFACTION 满意度 / OTHER 其他
+    anonymous          TINYINT                                    -          nn=1 def=0        是否匿名：1=匿名（发布者看不到填写人）0=实名
+    status             VARCHAR(16)                                -          nn=1 def='DRAFT'  状态：DRAFT 草稿 / PUBLISHED 已发布 / PAUSED 已暂停 / CLOSED 已结束（删除由 deleted 表达，不在此列）
+    share_code         VARCHAR(16)                                UK         nn=0 def=NULL     分享码（8 位，发布时生成，全局唯一）
+    start_time         DATETIME                                   -          nn=0 def=NULL     开始时间，NULL=立即开始
+    end_time           DATETIME                                   -          nn=0 def=NULL     截止时间，NULL=长期有效
+    limit_once         TINYINT                                    -          nn=1 def=1        是否限填一次：1=每人一份 0=可重复填写
+    question_count     INT                                        -          nn=1 def=0        题目数量（冗余，供列表页展示，避免 count 子查询）
+    answer_count       INT                                        -          nn=1 def=0        已回收答卷数（冗余，提交时 +1；无效/删除答卷在答卷模块扣减）
+    published_time     DATETIME                                   -          nn=0 def=NULL     首次发布时间
+    closed_time        DATETIME                                   -          nn=0 def=NULL     结束时间（人为提前结束时记录）
+    create_by          BIGINT UNSIGNED                            FK         nn=0 def=NULL     创建人（归属校验依据）
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    update_by          BIGINT UNSIGNED                            -          nn=0 def=NULL     最后修改人
+    update_time        DATETIME                                   -          nn=1 def=CURRENT_ 最后修改时间
+    deleted            TINYINT                                    -          nn=1 def=0        逻辑删除：0=正常 1=已删除
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_share_code          share_code                               uniq=1 pk=0
+    IDX idx_owner              create_by,status,deleted                 uniq=0 pk=0
+    IDX idx_status_time        status,end_time                          uniq=0 pk=0
+    IDX idx_create_time        create_time                              uniq=0 pk=0
+    IDX idx_title              title                                    uniq=0 pk=0
+survey_question | 问卷题目表 | 问卷管理 | 13 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    survey_id          BIGINT UNSIGNED                            FK         nn=1 def=         所属问卷 ID
+    question_type      VARCHAR(16)                                -          nn=1 def=         题型：SINGLE 单选 / MULTIPLE 多选 / TEXT 单行文本 / TEXTAREA 多行文本 / RATING 评分
+    title              VARCHAR(255)                               -          nn=1 def=         题干
+    description        VARCHAR(500)                               -          nn=0 def=NULL     题目补充说明
+    is_required        TINYINT                                    -          nn=1 def=0        是否必答：1=必答 0=选答
+    max_length         INT                                        -          nn=0 def=NULL     文本题最大字数（仅 TEXT/TEXTAREA 有效）
+    rating_max         TINYINT                                    -          nn=0 def=NULL     评分题最高分（仅 RATING 有效，默认 5）
+    sort_no            INT                                        -          nn=1 def=0        排序号，从 1 递增
+    create_by          BIGINT UNSIGNED                            -          nn=0 def=NULL     创建人
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    update_by          BIGINT UNSIGNED                            -          nn=0 def=NULL     最后修改人
+    update_time        DATETIME                                   -          nn=1 def=CURRENT_ 最后修改时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX idx_survey_sort        survey_id,sort_no                        uniq=0 pk=0
+survey_question_option | 问卷选项表 | 问卷管理 | 6 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    question_id        BIGINT UNSIGNED                            FK         nn=1 def=         所属题目 ID
+    survey_id          BIGINT UNSIGNED                            FK         nn=1 def=         所属问卷 ID（冗余，便于按问卷聚合统计）
+    content            VARCHAR(255)                               -          nn=1 def=         选项文本
+    sort_no            INT                                        -          nn=1 def=0        排序号，从 1 递增
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX idx_question_sort      question_id,sort_no                      uniq=0 pk=0
+    IDX idx_survey             survey_id                                uniq=0 pk=0
+answer_sheet | 答卷头表 | 答卷与统计 | 10 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键，同时作为答卷编号对外展示
+    survey_id          BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         所属问卷
+    user_id            BIGINT UNSIGNED                            FK         nn=1 def=         填写人。匿名问卷同样写入，仅用于限填一次与「我的记录」；任何面向发布者的接口都不得返回该字段
+    limit_once         TINYINT                                    -          nn=1 def=1        提交时对 survey.limit_once 的快照，决定是否占用唯一槽位
+    is_valid           TINYINT                                    -          nn=1 def=1        是否有效：1=有效（计入统计）0=已标记无效
+    invalid_reason     VARCHAR(255)                               -          nn=0 def=NULL     标记无效的原因
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 提交时间
+    update_time        DATETIME                                   -          nn=1 def=CURRENT_ 最后修改时间
+    deleted            TINYINT                                    -          nn=1 def=0        逻辑删除：0=正常 1=已删除
+    uniq_user          BIGINT UNSIGNED GENERATED ALWAYS AS (...) STORED UQ*        nn=0 def=         唯一槽位（生成列）：限填一次时=填写人，否则 NULL
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_survey_user         survey_id,uniq_user                      uniq=1 pk=0
+    IDX idx_survey_time        survey_id,deleted,create_time            uniq=0 pk=0
+    IDX idx_user_time          user_id,create_time                      uniq=0 pk=0
+answer_item | 答案明细表 | 答卷与统计 | 8 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    sheet_id           BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         所属答卷
+    survey_id          BIGINT UNSIGNED                            FK         nn=1 def=         冗余问卷 ID，统计时按问卷直接聚合，免一次 join
+    question_id        BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         题目 ID
+    option_values      JSON                                       -          nn=0 def=NULL     选项类答案：选项 ID 数组，如 [12,15]；单选也存数组，统一取值方式
+    text_value         TEXT                                       -          nn=0 def=NULL     文本题答案
+    number_value       INT                                        -          nn=0 def=NULL     评分题分值（1..rating_max）
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 创建时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_sheet_question      sheet_id,question_id                     uniq=1 pk=0
+    IDX idx_survey_question    survey_id,question_id                    uniq=0 pk=0
+    IDX idx_sheet              sheet_id                                 uniq=0 pk=0
+survey_draft | 填写草稿表 | 答卷与统计 | 6 cols
+    id                 BIGINT UNSIGNED                            PK         nn=1 def=         主键
+    survey_id          BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         所属问卷
+    user_id            BIGINT UNSIGNED                            FK,UQ*     nn=1 def=         填写人
+    answers_json       JSON                                       -          nn=1 def=         整卷作答 JSON，结构与提交请求一致，允许缺题（未答完）
+    create_time        DATETIME                                   -          nn=1 def=CURRENT_ 首次保存时间
+    update_time        DATETIME                                   -          nn=1 def=CURRENT_ 最后保存时间
+    IDX PRIMARY                id                                       uniq=1 pk=1
+    IDX uk_survey_user         survey_id,user_id                        uniq=1 pk=0
+    IDX idx_user_time          user_id,update_time                      uniq=0 pk=0

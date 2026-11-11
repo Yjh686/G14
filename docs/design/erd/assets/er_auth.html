@@ -1,0 +1,350 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:#ffffff; }
+body { font-family:"Microsoft YaHei","Segoe UI",Arial,sans-serif; }
+#canvas { position:relative; background:#fff; }
+#edges { position:absolute; left:0; top:0; z-index:1; }
+.box { position:absolute; z-index:2; border:1px solid #6f8296; border-radius:3px; background:#fff; overflow:hidden;
+        box-shadow:0 1px 2px rgba(15,30,50,.12); }
+.box .hd { color:#fff; padding:2px 10px; }
+.box .hd .t { font-size:19.5px; font-weight:700; line-height:22px; white-space:nowrap; }
+.box .hd .s { font-size:14.5px; line-height:18px; opacity:.95; white-space:nowrap; }
+.box .rw { display:flex; align-items:center; height:29px; padding:0 10px; font-size:17.0px;
+            color:#22303d; border-top:1px solid #eef1f4; white-space:nowrap; }
+.box .rw .k { width:32px; font-size:13.5px; font-weight:700; color:#fff; text-align:center;
+               border-radius:2px; margin-right:8px; line-height:14px;
+               height:14px; flex:none; }
+.box .rw .k.pk { background:#a8760f; }
+.box .rw .k.fk { background:#2b6a99; }
+.box .rw .k.uk { background:#5d8f34; }
+.box .rw .k.gc { background:#7d5aa0; }
+.box .rw .n { flex:1; }
+.box .rw.pkrow .n { font-weight:700; }
+.box .rw .ty { font-size:14.5px; color:#75838f; margin-left:9px; }
+.box .ft { height:24px; line-height:24px; padding:0 10px; font-size:15.0px; color:#8b98a5;
+            border-top:1px solid #eef1f4; background:#fbfcfd; white-space:nowrap; }
+.box.stub { border-style:dashed; }
+.box.stub .hd { opacity:.85; }
+.frame { position:absolute; z-index:0; border:1px solid #c3cfdb; border-radius:5px; background:#f9fbfd; }
+.frame .cap { position:absolute; top:-11px; left:11px; background:#fff;
+               padding:0 6px; font-size:15.0px; font-weight:700; color:#3d5570; letter-spacing:.5px; }
+.legend { position:absolute; z-index:3; font-size:14.0px; color:#33414f;
+           border:1px solid #d6dee6; border-radius:4px; background:#fff; padding:9px 14px; }
+.legend .l { display:flex; align-items:center; height:24px; gap:6px; white-space:nowrap; }
+</style></head><body>
+<div id="canvas" style="width:1141px;height:1141px">
+<svg id="edges" width="1141" height="1141" viewBox="0 0 1141 1141" xmlns="http://www.w3.org/2000/svg">
+<path d="M 395.0,175.5 L 430.0,175.5 L 430.0,204.5 L 465.0,204.5" fill="none" stroke="#46596c" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="395.0" y1="167.6" x2="395.0" y2="183.4" stroke="#46596c" stroke-width="1.6"/>
+<line x1="450.2" y1="204.5" x2="465.0" y2="197.6" stroke="#46596c" stroke-width="1.5"/>
+<line x1="450.2" y1="204.5" x2="465.0" y2="204.5" stroke="#46596c" stroke-width="1.5"/>
+<line x1="450.2" y1="204.5" x2="465.0" y2="211.4" stroke="#46596c" stroke-width="1.5"/>
+<circle cx="430.0" cy="190.0" r="9.4" fill="#fff" stroke="#46596c" stroke-width="1"/>
+<text x="430.0" y="190.5" font-size="11.2" fill="#46596c" text-anchor="middle" font-family="Microsoft YaHei" dominant-baseline="central">1:N</text>
+<path d="M 755.0,233.5 L 790.0,233.5 L 790.0,175.5 L 825.0,175.5" fill="none" stroke="#46596c" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="769.8" y1="233.5" x2="755.0" y2="240.4" stroke="#46596c" stroke-width="1.5"/>
+<line x1="769.8" y1="233.5" x2="755.0" y2="233.5" stroke="#46596c" stroke-width="1.5"/>
+<line x1="769.8" y1="233.5" x2="755.0" y2="226.6" stroke="#46596c" stroke-width="1.5"/>
+<line x1="825.0" y1="183.4" x2="825.0" y2="167.6" stroke="#46596c" stroke-width="1.6"/>
+<path d="M 915.0,335.0 L 915.0,415.0" fill="none" stroke="#46596c" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="922.9" y1="335.0" x2="907.1" y2="335.0" stroke="#46596c" stroke-width="1.6"/>
+<line x1="915.0" y1="400.2" x2="921.9" y2="415.0" stroke="#46596c" stroke-width="1.5"/>
+<line x1="915.0" y1="400.2" x2="915.0" y2="415.0" stroke="#46596c" stroke-width="1.5"/>
+<line x1="915.0" y1="400.2" x2="908.1" y2="415.0" stroke="#46596c" stroke-width="1.5"/>
+<circle cx="915.0" cy="375.0" r="9.4" fill="#fff" stroke="#46596c" stroke-width="1"/>
+<text x="915.0" y="375.5" font-size="11.2" fill="#46596c" text-anchor="middle" font-family="Microsoft YaHei" dominant-baseline="central">1:N</text>
+<path d="M 1005.0,582.0 L 1005.0,662.0" fill="none" stroke="#46596c" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="1005.0" y1="596.8" x2="998.1" y2="582.0" stroke="#46596c" stroke-width="1.5"/>
+<line x1="1005.0" y1="596.8" x2="1005.0" y2="582.0" stroke="#46596c" stroke-width="1.5"/>
+<line x1="1005.0" y1="596.8" x2="1011.9" y2="582.0" stroke="#46596c" stroke-width="1.5"/>
+<line x1="997.1" y1="662.0" x2="1012.9" y2="662.0" stroke="#46596c" stroke-width="1.6"/>
+<circle cx="1005.0" cy="622.0" r="9.4" fill="#fff" stroke="#46596c" stroke-width="1"/>
+<text x="1005.0" y="622.5" font-size="11.2" fill="#46596c" text-anchor="middle" font-family="Microsoft YaHei" dominant-baseline="central">N:1</text>
+<path d="M 120.0,770.0 L 120.0,974.5 L 465.0,974.5" fill="none" stroke="#8a5f2b" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="127.9" y1="770.0" x2="112.1" y2="770.0" stroke="#8a5f2b" stroke-width="1.6"/>
+<line x1="450.2" y1="974.5" x2="465.0" y2="967.6" stroke="#8a5f2b" stroke-width="1.5"/>
+<line x1="450.2" y1="974.5" x2="465.0" y2="974.5" stroke="#8a5f2b" stroke-width="1.5"/>
+<line x1="450.2" y1="974.5" x2="465.0" y2="981.4" stroke="#8a5f2b" stroke-width="1.5"/>
+<path d="M 755.0,1003.5 L 790.0,1003.5 L 790.0,727.5 L 825.0,727.5" fill="none" stroke="#8a5f2b" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="769.8" y1="1003.5" x2="755.0" y2="1010.4" stroke="#8a5f2b" stroke-width="1.5"/>
+<line x1="769.8" y1="1003.5" x2="755.0" y2="1003.5" stroke="#8a5f2b" stroke-width="1.5"/>
+<line x1="769.8" y1="1003.5" x2="755.0" y2="996.6" stroke="#8a5f2b" stroke-width="1.5"/>
+<line x1="825.0" y1="735.4" x2="825.0" y2="719.6" stroke="#8a5f2b" stroke-width="1.6"/>
+</svg>
+<div class="box" style="left:40px;top:110px;width:355px;height:660px">
+<div class="hd" style="background:#3d6b96">
+<div class="t">sys_user</div>
+<div class="s">用户表　21 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k uk">UK</span>
+<span class="n">username</span>
+<span class="ty">VARCHAR(64)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">password_hash</span>
+<span class="ty">VARCHAR(100)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">real_name</span>
+<span class="ty">VARCHAR(64)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">status</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">audit_status</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">must_change_password</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">phone</span>
+<span class="ty">VARCHAR(20)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">email</span>
+<span class="ty">VARCHAR(128)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">department</span>
+<span class="ty">VARCHAR(128)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">token_version</span>
+<span class="ty">INT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">login_fail_count</span>
+<span class="ty">INT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">locked_until</span>
+<span class="ty">DATETIME</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">last_login_time</span>
+<span class="ty">DATETIME</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">audit_remark</span>
+<span class="ty">VARCHAR(255)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">remark</span>
+<span class="ty">VARCHAR(255)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">deleted</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_by</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">update_by</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">update_time</span>
+<span class="ty">DATETIME</span>
+</div>
+</div>
+<div class="box" style="left:465px;top:110px;width:290px;height:196px">
+<div class="hd" style="background:#3d6b96">
+<div class="t">sys_user_role</div>
+<div class="s">用户-角色关联表　5 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">user_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">role_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_by</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+</div>
+<div class="box" style="left:825px;top:110px;width:280px;height:225px">
+<div class="hd" style="background:#3d6b96">
+<div class="t">sys_role</div>
+<div class="s">角色表　6 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k uk">UK</span>
+<span class="n">code</span>
+<span class="ty">VARCHAR(32)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">name</span>
+<span class="ty">VARCHAR(32)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">description</span>
+<span class="ty">VARCHAR(255)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">builtin</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+</div>
+<div class="box" style="left:465px;top:880px;width:290px;height:225px">
+<div class="hd" style="background:#3d6b96">
+<div class="t">sys_user_permission</div>
+<div class="s">用户追加权限表　6 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">user_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">perm_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">grant_by</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">grant_time</span>
+<span class="ty">DATETIME</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">remark</span>
+<span class="ty">VARCHAR(255)</span>
+</div>
+</div>
+<div class="box" style="left:825px;top:415px;width:280px;height:167px">
+<div class="hd" style="background:#3d6b96">
+<div class="t">sys_role_permission</div>
+<div class="s">角色-权限关联表　4 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">role_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">perm_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+</div>
+<div class="box" style="left:825px;top:662px;width:280px;height:225px">
+<div class="hd" style="background:#3d6b96">
+<div class="t">sys_permission</div>
+<div class="s">权限字典表　6 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k uk">UK</span>
+<span class="n">code</span>
+<span class="ty">VARCHAR(64)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">name</span>
+<span class="ty">VARCHAR(64)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">module</span>
+<span class="ty">VARCHAR(32)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">description</span>
+<span class="ty">VARCHAR(255)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+</div>
+</div></body></html>

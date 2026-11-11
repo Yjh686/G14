@@ -1,0 +1,176 @@
+{
+  "plan": {
+    "surveyId": 221,
+    "title": "压测问卷 1109114000",
+    "questionIds": [
+      559,
+      560,
+      561,
+      562
+    ],
+    "singleOptions": [
+      840,
+      841,
+      842,
+      843
+    ],
+    "multiOptions": [
+      844,
+      845,
+      846
+    ],
+    "userIds": [
+      995,
+      996,
+      997,
+      998,
+      999,
+      1000,
+      1001,
+      1002,
+      1003,
+      1004,
+      1005,
+      1006,
+      1007,
+      1008,
+      1009,
+      1010,
+      1011,
+      1012,
+      1013,
+      1014
+    ]
+  },
+  "stat": {
+    "concurrency": 20,
+    "duration_s": 128.8,
+    "total_requests": 819,
+    "throughput_rps": 6.4,
+    "avg_ms": 14.6,
+    "p50_ms": 14.1,
+    "p95_ms": 23.2,
+    "p99_ms": 32.3,
+    "max_ms": 237.9,
+    "faults": 0,
+    "fault_rate_pct": 0.0,
+    "status_breakdown": {
+      "draft:200": 91,
+      "query:200": 170,
+      "submit:200": 558
+    },
+    "by_endpoint": {
+      "submit": {
+        "count": 558,
+        "ok": 558,
+        "avg_ms": 17.5,
+        "p50_ms": 15.1,
+        "p90_ms": 22.7,
+        "p95_ms": 23.7,
+        "p99_ms": 36.8,
+        "max_ms": 237.9
+      },
+      "query": {
+        "count": 170,
+        "ok": 170,
+        "avg_ms": 6.1,
+        "p50_ms": 6.0,
+        "p90_ms": 7.0,
+        "p95_ms": 7.6,
+        "p99_ms": 9.1,
+        "max_ms": 9.7
+      },
+      "draft": {
+        "count": 91,
+        "ok": 91,
+        "avg_ms": 13.3,
+        "p50_ms": 12.2,
+        "p90_ms": 19.6,
+        "p95_ms": 20.1,
+        "p99_ms": 21.2,
+        "max_ms": 21.7
+      }
+    },
+    "error_kinds": {},
+    "error_samples": [],
+    "success_submit": 558
+  },
+  "checks": [
+    {
+      "name": "整体故障率 < 0.1%",
+      "pass": true,
+      "actual": "0.0%"
+    },
+    {
+      "name": "每个时段故障率均 < 0.1%",
+      "pass": true,
+      "actual": "最差时段 0.0%"
+    },
+    {
+      "name": "无 5xx",
+      "pass": true,
+      "actual": ""
+    },
+    {
+      "name": "Full GC 次数为 0（无内存泄漏迹象）",
+      "pass": true,
+      "actual": "0 次"
+    }
+  ],
+  "hours": [
+    {
+      "window": "11:40:03 起 1 分钟",
+      "total": 394,
+      "faults": 0,
+      "rate_pct": 0.0
+    },
+    {
+      "window": "11:41:03 起 1 分钟",
+      "total": 392,
+      "faults": 0,
+      "rate_pct": 0.0
+    },
+    {
+      "window": "11:42:03 起 1 分钟",
+      "total": 33,
+      "faults": 0,
+      "rate_pct": 0.0
+    }
+  ],
+  "samples": [
+    {
+      "at": "2026-11-09 11:40:33",
+      "heap_pct": 48.64,
+      "eden_pct": 15.79,
+      "ygc": 23,
+      "fgc": 0,
+      "gct_s": 0.071
+    },
+    {
+      "at": "2026-11-09 11:41:03",
+      "heap_pct": 48.64,
+      "eden_pct": 36.84,
+      "ygc": 25,
+      "fgc": 0,
+      "gct_s": 0.077
+    },
+    {
+      "at": "2026-11-09 11:41:34",
+      "heap_pct": 48.64,
+      "eden_pct": 57.89,
+      "ygc": 27,
+      "fgc": 0,
+      "gct_s": 0.084
+    },
+    {
+      "at": "2026-11-09 11:42:04",
+      "heap_pct": 48.64,
+      "eden_pct": 68.42,
+      "ygc": 29,
+      "fgc": 0,
+      "gct_s": 0.09
+    }
+  ],
+  "started_at": "2026-11-09T11:40:03",
+  "finished_at": "2026-11-09T11:42:12"
+}

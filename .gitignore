@@ -1,0 +1,40 @@
+# ---- 操作系统 / 编辑器 ----
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ---- 日志 ----
+logs/
+*.log
+# 长稳测试的运行日志是「指标二」的原始证据，必须入库
+!docs/test/*.log
+
+# ---- Node / 前端 ----
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.local
+*.tsbuildinfo
+test-results/
+playwright-report/
+
+# ---- Java / Maven ----
+target/
+*.class
+HELP.md
+
+# ---- Python ----
+__pycache__/
+*.pyc
+
+# ---- 本地环境变量（.env.example 仍然入库）----
+.env
+.env.local
+.env.*.local

@@ -1,0 +1,99 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: campus-survey-backend
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/G14(1)?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    username: root
+    password: "123456"
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: CampusHikari
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  mvc:
+    throw-exception-if-no-handler-found: true
+  servlet:
+    multipart:
+      # 用户批量导入：1000 行 × 7 列 的 xlsx 大约 40KB，5MB 给了很宽的余量。
+      # 上限不宜放大 —— 这是个只有管理员能调的接口，没有理由接受 100MB 的文件。
+      max-file-size: 5MB
+      max-request-size: 5MB
+      # 超过阈值才落临时盘，小文件留在内存里更快
+      file-size-threshold: 256KB
+  web:
+    resources:
+      add-mappings: false
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 打印 SQL 用 NoOpImpl + logging.level 细粒度控制，而不是 StdOutImpl。
+    # StdOutImpl 直接写 System.out（同步、无缓冲），每个请求十几条 SQL 就是十几行输出，
+    # 100 并发压测时日志文件 5 分钟涨到 68MB，System.out 的写锁本身就成了串行化瓶颈。
+    # 需要看 SQL 时把 com.yjh.backend1.module.*.mapper 调成 DEBUG 即可（见文件末尾）。
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+app:
+  jwt:
+    # HS256 密钥，明文，UTF-8 编码后必须 >= 32 字节。生产环境请用环境变量覆盖。
+    secret: "campus-survey-G14-1-jwt-secret-key-2025-do-not-share"
+    # 令牌有效期（分钟），默认 12 小时
+    expire-minutes: 720
+  security:
+    # 连续登录失败 N 次后锁定
+    max-login-fail: 5
+    # 锁定时长（分钟）
+    lock-minutes: 15
+    # ADMIN 重置密码后的默认密码
+    default-password: "G14@init2025"
+    # 用户权限快照缓存秒数（改密/禁用会主动失效，这里是兜底 TTL）
+    perm-cache-seconds: 60
+
+springdoc:
+  # Swagger UI 与 OpenAPI JSON 的路径（默认值，写出来便于部署时核对 nginx 白名单）
+  api-docs:
+    path: /v3/api-docs
+    # 生产环境应覆盖为 false，避免把内部接口结构暴露出去
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    # 不弹那个默认的 petstore 地址，直接用本服务的 /v3/api-docs
+    disable-swagger-default-url: true
+    # 按 Controller 分组并排序，72 个接口平铺打开会很长
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+logging:
+  level:
+    root: INFO
+    # 业务包默认 INFO：DEBUG 会让每个请求打十几行，压测时日志文件几分钟涨到几十 MB，
+    # 而 System.out / 文件 appender 是同步的，写日志本身会把并发压成串行。
+    # 排查问题时把下面的 mapper 行取消注释即可看到完整 SQL 与参数。
+    com.yjh.backend1: INFO
+    # com.yjh.backend1.module.survey.mapper: DEBUG
+  file:
+    name: backend/target/app.log
+    max-size: 20MB
+    max-history: 7

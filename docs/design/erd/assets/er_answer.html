@@ -1,0 +1,227 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:#ffffff; }
+body { font-family:"Microsoft YaHei","Segoe UI",Arial,sans-serif; }
+#canvas { position:relative; background:#fff; }
+#edges { position:absolute; left:0; top:0; z-index:1; }
+.box { position:absolute; z-index:2; border:1px solid #6f8296; border-radius:3px; background:#fff; overflow:hidden;
+        box-shadow:0 1px 2px rgba(15,30,50,.12); }
+.box .hd { color:#fff; padding:2px 10px; }
+.box .hd .t { font-size:19.5px; font-weight:700; line-height:22px; white-space:nowrap; }
+.box .hd .s { font-size:14.5px; line-height:18px; opacity:.95; white-space:nowrap; }
+.box .rw { display:flex; align-items:center; height:29px; padding:0 10px; font-size:17.0px;
+            color:#22303d; border-top:1px solid #eef1f4; white-space:nowrap; }
+.box .rw .k { width:32px; font-size:13.5px; font-weight:700; color:#fff; text-align:center;
+               border-radius:2px; margin-right:8px; line-height:14px;
+               height:14px; flex:none; }
+.box .rw .k.pk { background:#a8760f; }
+.box .rw .k.fk { background:#2b6a99; }
+.box .rw .k.uk { background:#5d8f34; }
+.box .rw .k.gc { background:#7d5aa0; }
+.box .rw .n { flex:1; }
+.box .rw.pkrow .n { font-weight:700; }
+.box .rw .ty { font-size:14.5px; color:#75838f; margin-left:9px; }
+.box .ft { height:24px; line-height:24px; padding:0 10px; font-size:15.0px; color:#8b98a5;
+            border-top:1px solid #eef1f4; background:#fbfcfd; white-space:nowrap; }
+.box.stub { border-style:dashed; }
+.box.stub .hd { opacity:.85; }
+.frame { position:absolute; z-index:0; border:1px solid #c3cfdb; border-radius:5px; background:#f9fbfd; }
+.frame .cap { position:absolute; top:-11px; left:11px; background:#fff;
+               padding:0 6px; font-size:15.0px; font-weight:700; color:#3d5570; letter-spacing:.5px; }
+.legend { position:absolute; z-index:3; font-size:14.0px; color:#33414f;
+           border:1px solid #d6dee6; border-radius:4px; background:#fff; padding:9px 14px; }
+.legend .l { display:flex; align-items:center; height:24px; gap:6px; white-space:nowrap; }
+</style></head><body>
+<div id="canvas" style="width:1196px;height:905px">
+<svg id="edges" width="1196" height="905" viewBox="0 0 1196 905" xmlns="http://www.w3.org/2000/svg">
+<path d="M 340.0,165.5 L 380.0,165.5 L 380.0,194.5 L 420.0,194.5" fill="none" stroke="#46596c" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="340.0" y1="157.6" x2="340.0" y2="173.4" stroke="#46596c" stroke-width="1.6"/>
+<line x1="405.2" y1="194.5" x2="420.0" y2="187.6" stroke="#46596c" stroke-width="1.5"/>
+<line x1="405.2" y1="194.5" x2="420.0" y2="194.5" stroke="#46596c" stroke-width="1.5"/>
+<line x1="405.2" y1="194.5" x2="420.0" y2="201.4" stroke="#46596c" stroke-width="1.5"/>
+<circle cx="380.0" cy="180.0" r="9.4" fill="#fff" stroke="#46596c" stroke-width="1"/>
+<text x="380.0" y="180.5" font-size="11.2" fill="#46596c" text-anchor="middle" font-family="Microsoft YaHei" dominant-baseline="central">1:N</text>
+<path d="M 470.0,441.0 L 470.0,541.0" fill="none" stroke="#46596c" stroke-width="1.2" stroke-linejoin="round"/>
+<line x1="477.9" y1="441.0" x2="462.1" y2="441.0" stroke="#46596c" stroke-width="1.6"/>
+<line x1="470.0" y1="526.2" x2="476.9" y2="541.0" stroke="#46596c" stroke-width="1.5"/>
+<line x1="470.0" y1="526.2" x2="470.0" y2="541.0" stroke="#46596c" stroke-width="1.5"/>
+<line x1="470.0" y1="526.2" x2="463.1" y2="541.0" stroke="#46596c" stroke-width="1.5"/>
+<circle cx="470.0" cy="491.0" r="9.4" fill="#fff" stroke="#46596c" stroke-width="1"/>
+<text x="470.0" y="491.5" font-size="11.2" fill="#46596c" text-anchor="middle" font-family="Microsoft YaHei" dominant-baseline="central">1:N</text>
+<path d="M 70.0,296.0 L 70.0,869.0 L 810.0,869.0 L 810.0,635.5 L 850.0,635.5" fill="none" stroke="#8a5f2b" stroke-width="1.2" stroke-linejoin="round" stroke-dasharray="7,6"/>
+<line x1="77.9" y1="296.0" x2="62.1" y2="296.0" stroke="#8a5f2b" stroke-width="1.6"/>
+<line x1="835.2" y1="635.5" x2="850.0" y2="628.6" stroke="#8a5f2b" stroke-width="1.5"/>
+<line x1="835.2" y1="635.5" x2="850.0" y2="635.5" stroke="#8a5f2b" stroke-width="1.5"/>
+<line x1="835.2" y1="635.5" x2="850.0" y2="642.4" stroke="#8a5f2b" stroke-width="1.5"/>
+<path d="M 750.0,223.5 L 800.0,223.5 L 800.0,664.5 L 850.0,664.5" fill="none" stroke="#b9c4ce" stroke-width="1.2" stroke-linejoin="round" stroke-dasharray="7,6"/>
+</svg>
+<div class="box" style="left:40px;top:100px;width:300px;height:196px">
+<div class="hd" style="background:#2f7a6b">
+<div class="t">survey</div>
+<div class="s">问卷主表　19 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">title</span>
+<span class="ty">VARCHAR(120)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">status</span>
+<span class="ty">VARCHAR(16)</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">create_by</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">deleted</span>
+<span class="ty">TINYINT</span>
+</div>
+</div>
+<div class="box" style="left:420px;top:100px;width:330px;height:341px">
+<div class="hd" style="background:#8a5f2b">
+<div class="t">answer_sheet</div>
+<div class="s">答卷头表　10 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">survey_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">user_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">limit_once</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">is_valid</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">invalid_reason</span>
+<span class="ty">VARCHAR(255)</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">update_time</span>
+<span class="ty">DATETIME</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">deleted</span>
+<span class="ty">TINYINT</span>
+</div>
+<div class="rw">
+<span class="k uk">UK</span>
+<span class="n">uniq_user</span>
+<span class="ty">BIGINT STORED 生成列</span>
+</div>
+</div>
+<div class="box" style="left:420px;top:541px;width:330px;height:283px">
+<div class="hd" style="background:#8a5f2b">
+<div class="t">answer_item</div>
+<div class="s">答案明细表　8 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">sheet_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">survey_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">question_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">option_values</span>
+<span class="ty">JSON</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">text_value</span>
+<span class="ty">TEXT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">number_value</span>
+<span class="ty">INT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+</div>
+<div class="box" style="left:850px;top:541px;width:310px;height:225px">
+<div class="hd" style="background:#8a5f2b">
+<div class="t">survey_draft</div>
+<div class="s">填写草稿表　6 字段</div>
+</div>
+<div class="rw pkrow">
+<span class="k pk">PK</span>
+<span class="n">id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">survey_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span class="k fk">FK</span>
+<span class="n">user_id</span>
+<span class="ty">BIGINT</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">answers_json</span>
+<span class="ty">JSON</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">create_time</span>
+<span class="ty">DATETIME</span>
+</div>
+<div class="rw">
+<span style="width:32px;margin-right:8px;flex:none;display:inline-block"></span>
+<span class="n">update_time</span>
+<span class="ty">DATETIME</span>
+</div>
+</div>
+</div></body></html>
