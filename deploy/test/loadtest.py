@@ -449,9 +449,15 @@ def probe_deadlock(started_at):
         mysql = os.environ.get(
             "MYSQL_BIN", r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
         )
+        # 密码走 MYSQL_PWD 环境变量而不是 -p 参数：
+        # 拼在命令行上会让密码出现在进程列表里（同机其他用户可见），
+        # 而且密码含 # 时会被 shell 当注释截断。
+        env = dict(os.environ)
+        env["MYSQL_PWD"] = os.environ.get("DB_PASSWORD", "")
         out = subprocess.run(
-            [mysql, "-u", "root", "-p123456", "-e", "SHOW ENGINE INNODB STATUS\\G"],
-            capture_output=True, timeout=20,
+            [mysql, "-u", os.environ.get("DB_USERNAME", "root"),
+             "-e", "SHOW ENGINE INNODB STATUS\\G"],
+            capture_output=True, timeout=20, env=env,
         )
         text = out.stdout.decode("utf-8", "replace")
         marker = "LATEST DETECTED DEADLOCK"

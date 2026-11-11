@@ -31,52 +31,70 @@
 
 ## 快速开始
 
+> 完整步骤（含云服务器上线、域名与 HTTPS）见 `docs/deploy/部署文档.md`。
+> 这里只给本机跑起来的最短路径。
+
+### 0. 凭据从哪里来
+
+仓库里**没有**任何默认数据库密码或 JWT 密钥——它是公开仓库，写默认值等于把密码挂出去。
+两个凭据都通过环境变量注入，缺失时后端会直接启动失败并指明缺哪一项。
+
+```powershell
+cd backend
+copy .env.local.example .env.local     # 首次
+notepad .env.local                     # 填 DB_PASSWORD，以及一个 >=32 字节的 APP_JWT_SECRET
+```
+
+`APP_JWT_SECRET` 的生成方式：
+
+```powershell
+# 任选其一
+openssl rand -base64 48
+[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Max 256 }))
+```
+
+`.env.local` 已在 `.gitignore` 里排除，不会进仓库。
+
 ### 1. 准备数据库
 
-MySQL 8.0 已启动，root 密码 `123456`。执行建表与初始化脚本：
-
 ```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p123456 --default-character-set=utf8mb4 `
-  -e "source D:/G14(1)/deploy/sql/01_schema_auth.sql" "g14(1)"
+$mysql = "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
+$db    = "g14(1)"
+
+# 01 认证(8表) → 02 问卷(3表) → 03 答题(3表) → 04 模板(2表) → 05 配置(1表)
+foreach ($f in 01_schema_auth, 02_schema_survey, 03_schema_answer, 04_schema_template, 05_schema_config) {
+    & $mysql -u root -p --default-character-set=utf8mb4 $db -e "source D:/G14(1)/deploy/sql/$f.sql"
+}
 ```
 
-脚本会创建 8 张表（`sys_user` / `sys_role` / `sys_permission` / `sys_user_role` / `sys_role_permission` / `sys_user_permission` / `sys_login_log` / `sys_operation_log`），初始化 3 个角色、50 个权限码、3 个演示账号。
+执行完是 17 张表：3 个角色、50 个权限码、10 项系统配置、3 个演示账号；外加 2 份演示问卷。
 
-问卷模块相关的 3 张表（`survey` / `survey_question` / `survey_question_option`）在第二个脚本里：
-
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p123456 --default-character-set=utf8mb4 `
-  -e "source D:/G14(1)/deploy/sql/02_schema_survey.sql" "g14(1)"
-```
-
-答题模块的 3 张表（`answer_sheet` / `answer_item` / `survey_draft`）在第三个脚本里：
-
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p123456 --default-character-set=utf8mb4 `
-  -e "source D:/G14(1)/deploy/sql/03_schema_answer.sql" "g14(1)"
-```
-
-模板中心的 2 张表（`survey_template` / `template_rating`）在第四个脚本里：
-
-```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p123456 --default-character-set=utf8mb4 `
-  -e "source D:/G14(1)/deploy/sql/04_schema_template.sql" "g14(1)"
-```
+> `-e "source ..."` 后面**必须再跟库名参数**，否则报 `ERROR 1046 No database selected`。
+> mysql CLI 会因「命令行传密码」打一条警告并返回 exit code 1，这不是执行失败。
 
 需要清空冒烟与 E2E 留下的测试数据（只保留演示问卷与三个演示账号）时：
 
 ```powershell
-& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p123456 --default-character-set=utf8mb4 `
-  -e "source D:/G14(1)/deploy/sql/90_cleanup_test_data.sql" "g14(1)"
+& $mysql -u root -p --default-character-set=utf8mb4 $db -e "source D:/G14(1)/deploy/sql/90_cleanup_test_data.sql"
 ```
-
-> 库名带括号，命令行里必须加引号；Windows 上库名实际存为小写 `g14(1)`，JDBC URL 里写 `G14(1)` 也能连通（MySQL 在 Windows 上不区分库名大小写）。
 
 ### 2. 启动后端
 
 ```powershell
+.\backend\start-local.ps1              # 编译并启动，端口 8080
+.\backend\start-local.ps1 -Port 8081   # 换端口
+.\backend\start-local.ps1 -Jar        # 用打包好的 jar 启动（会先 package）
+```
+
+脚本会：读 `backend\.env.local` → 注入 `DB_PASSWORD` / `APP_JWT_SECRET` → 停掉本项目的旧 java 进程 → 编译或打包 → 后台启动 → 轮询 `/api/health` 直到就绪。日志在 `backend\target\run.log`。
+
+也可以不用脚本，自己注入环境变量：
+
+```powershell
+$env:DB_PASSWORD = "你的数据库密码"
+$env:APP_JWT_SECRET = "至少32字节的随机串"
 $env:JAVA_HOME = "D:\huanjing\jdk-17"
-& "D:\Maven\apache-maven-3.9.16\bin\mvn.cmd" -o -f backend\pom.xml -DskipTests compile
+& "D:\Maven\apache-maven-3.9.16\bin\mvn.cmd" -o -f backend\pom.xml -DskipTests package
 & "$env:JAVA_HOME\bin\java.exe" -jar backend\target\backend1-0.0.1-SNAPSHOT.jar
 ```
 

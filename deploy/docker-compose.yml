@@ -22,7 +22,9 @@ services:
     container_name: g14-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      # 没有 :- 默认值，缺了就启动失败并报清楚原因。
+      # 一个写在开源仓库里的「默认密码」等于没有密码。
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 deploy/.env 里设置 MYSQL_ROOT_PASSWORD（参考 .env.example）}
       TZ: Asia/Shanghai
       # 必须有 LANG：官方 entrypoint 执行 initdb 脚本时调用的 mysql 客户端
       # 不带 --default-character-set，字符集取决于 locale。没有 LANG 时
@@ -59,7 +61,10 @@ services:
       # 生产机上没必要对外暴露 MySQL，可以整行删掉或用 127.0.0.1:13306:3306。
       - "${MYSQL_PUBLISH:-127.0.0.1:3306:3306}"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      # 用容器内的 MYSQL_PWD 读密码而不是拼进命令行：
+      # 拼进命令行（-p$PASS）会让密码出现在进程列表里，同机其他用户能看见；
+      # 而且 `#` 之类的字符在 shell 里会被当注释截断，导致健康检查莫名失败。
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h 127.0.0.1 -uroot --silent"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -80,8 +85,14 @@ services:
       # 库名带括号，JDBC URL 里必须转义成 %28 %29，否则驱动会把括号当语法。
       SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/G14%281%29?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true"
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
-      APP_JWT_SECRET: ${APP_JWT_SECRET:-campus-survey-G14-1-jwt-secret-key-2025-do-not-share}
+      # 用 DB_PASSWORD 而不是 SPRING_DATASOURCE_PASSWORD：
+      # application.yml 里写的是 password: ${DB_PASSWORD}，两者虽然最终都能生效
+      # （环境变量优先级高于 yml），但同名变量一眼能对上，排障时不用再想
+      # 「这个 SPRING_DATASOURCE_PASSWORD 到底覆盖了什么」。
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 deploy/.env 里设置 MYSQL_ROOT_PASSWORD}
+      # 同样没有默认值：开源仓库里的默认 JWT 密钥等于所有部署共用一把钥匙，
+      # 谁都能自己签一个 token 冒充管理员。缺了它后端会启动失败（JwtUtil 校验长度）。
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?请在 deploy/.env 里设置 APP_JWT_SECRET（至少 32 字节，可用 openssl rand -base64 48 生成）}
       # 注意这里没有 APP_SECURITY_DEFAULT_PASSWORD：
       # 默认密码与密码强度规则是 FR-CFG-02 的「可在线修改」项，真实来源是
       # sys_config 表（由 05_schema_config.sql 初始化），只能登录后在

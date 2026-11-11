@@ -11,9 +11,14 @@ spring:
     name: campus-survey-backend
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/G14(1)?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
-    username: root
-    password: "123456"
+    # 三个值全部走环境变量，仓库里不留任何真实凭据。
+    # 本机开发用 backend/start-local.ps1 启动（它会注入 backend/.env.local 里的值）；
+    # 容器部署由 deploy/.env 注入（见 deploy/.env.example）。
+    # 库名里的括号在 JDBC URL 中必须转义成 %28 %29，否则会被当成 URL 语法。
+    url: ${DB_URL:jdbc:mysql://localhost:3306/G14%281%29?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true}
+    username: ${DB_USERNAME:root}
+    # 没有默认值：宁可启动失败并报清楚原因，也不要用一个「人人都知道」的密码连上库
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -56,8 +61,11 @@ mybatis-plus:
 
 app:
   jwt:
-    # HS256 密钥，明文，UTF-8 编码后必须 >= 32 字节。生产环境请用环境变量覆盖。
-    secret: ${APP_JWT_SECRET:campus-survey-G14-1-jwt-secret-key-2025-do-not-share}
+    # HS256 密钥，UTF-8 编码后必须 >= 32 字节（JwtUtil 构造时会校验，不足直接启动失败）。
+    # 没有兜底默认值：默认密钥写在开源仓库里，等于所有部署共用一把钥匙，
+    # 任何人都能自己签发 token 冒充管理员。启动失败比「悄悄用默认值」安全得多。
+    # 生成方法：openssl rand -base64 48
+    secret: ${APP_JWT_SECRET}
     # 令牌有效期（分钟），默认 12 小时
     expire-minutes: 720
   security:

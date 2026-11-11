@@ -15,7 +15,7 @@
 --   登录日志与操作日志（只留最近 7 天）
 --
 -- 用法：
---   & "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p123456 ^
+--   & "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p --default-character-set=utf8mb4 ^
 --       --default-character-set=utf8mb4 -e "source D:/G14(1)/deploy/sql/90_cleanup_test_data.sql" "g14(1)"
 -- =============================================================
 
