@@ -22,6 +22,22 @@ import {
   User,
 } from '@element-plus/icons-vue'
 
+/**
+ * 编程式 API 的样式必须显式引入。
+ *
+ * unplugin-vue-components 的 resolver 只认模板里写死的标签名，对
+ * `import { ElMessage } from 'element-plus'` 这种手动导入不生效：
+ * JS 正常、CSS 缺失。缺的是 el-message-box 自己的 `position: fixed` 居中
+ * 与 el-overlay 的全屏遮罩，于是确认框退化成普通块级元素、排在 body 末尾
+ * —— 也就是「退出登录的提示框跑到页面最下面」。
+ *
+ * 这三个 css.mjs 内部只 import 需要的分片（message-box 会带 input/button/overlay），
+ * 加起来约 30KB，比全量 theme-chalk 便宜得多。
+ */
+import 'element-plus/es/components/message/style/css'
+import 'element-plus/es/components/message-box/style/css'
+import 'element-plus/es/components/loading/style/css'
+
 import '@/styles/global.css'
 
 import App from './App.vue'

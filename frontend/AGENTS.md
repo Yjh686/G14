@@ -71,7 +71,7 @@ src/
 ## 已知事项
 
 - Element Plus 是**按需引入**（`unplugin-vue-components` + `unplugin-auto-import`，配置在 `vite.config.ts`），别再写 `app.use(ElementPlus)` 或 `import 'element-plus/dist/index.css'`——那样会把已经降下来的首屏体积打回 1.29 MB。首屏 entry 现约 354 KB（gzip 131 KB）。
-- 两个按需引入之后的硬约定：①写死的 PascalCase 图标自动生效，但**字符串形式的图标**（菜单数据里的 `{ icon: 'Memo' }`、`<component :is="'Expand'" />`）必须在 `src/main.ts` 的 `ICONS` 里手工登记，否则渲染空白；②中文语言包靠 `App.vue` 的 `<el-config-provider :locale="zhCn">`，去掉它分页会显示「10/page」、日期选择器变英文。
+- 三个按需引入之后的硬约定：①写死的 PascalCase 图标自动生效，但**字符串形式的图标**（菜单数据里的 `{ icon: 'Memo' }`、`<component :is="'Expand'" />`）必须在 `src/main.ts` 的 `ICONS` 里手工登记，否则渲染空白；②中文语言包靠 `App.vue` 的 `<el-config-provider :locale="zhCn">`，去掉它分页会显示「10/page」、日期选择器变英文；③**编程式 API 必须显式引样式**——`ElMessage` / `ElMessageBox` / `v-loading` 是 `import` 进来的、不是模板标签，resolver 管不到，要在 `main.ts` 引 `element-plus/es/components/{message,message-box,loading}/style/css`。漏了不会报错，只会让确认框失去 `position:fixed` 与遮罩、掉到 `<body>` 末尾（「提示框跑到页面最下面」）。`src/__tests__/element-plus-styles.spec.ts` 已用单测锁住这三行。
 - **路由守卫里不许 await 网络请求**。`useConfigStore().load()` 是 fire-and-forget（`void ... .then(applyTitle)`）：本机 18ms 看不出来，公网隧道实测 3.1s，await 它等于给首屏白加 3 秒。站点名有兜底值、配置是响应式的，晚到不影响正确性。
 - 登录页 `LoginView` 是**静态引入**（`component: LoginView`），其余 27 个路由继续 `() => import(...)`。理由同上：登录页是必经第一页，多一个动态 chunk 就多一个约 2 秒的往返。往 entry 里塞别的页面（尤其带 echarts 的统计页）是相反方向的错误。
 - 不要给这个项目加 `manualChunks` 按包名分组。实测把 `element-plus` 归成一个 vendor chunk 后，它变成 957 KB 并被 `modulepreload` 强制进首屏 —— 按需引入懒加载的组件全被拽了回来。详见 `docs/design/首屏加载优化.md`。
