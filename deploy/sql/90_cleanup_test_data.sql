@@ -1,4 +1,4 @@
--- =============================================================
+﻿-- =============================================================
 -- 90_cleanup_test_data.sql
 -- 用途：清理冒烟脚本与 E2E 脚本留下的测试数据，只保留演示数据。
 --
@@ -48,6 +48,14 @@ DELETE FROM survey
 UPDATE survey SET answer_count = 0 WHERE id IN (1, 13);
 
 -- 5) 清理测试账号（先删关联表再删主表）
+-- 密保表与找回日志没有逻辑删除，必须显式删：sys_user_recovery 有 uk_user 唯一键，
+-- 若不删，将来复用同一个 id 建账号会直接撞唯一键。
+DELETE FROM sys_user_recovery
+ WHERE user_id NOT IN (1, 2, 3);
+
+DELETE FROM sys_recovery_log
+ WHERE user_id IS NOT NULL AND user_id NOT IN (1, 2, 3);
+
 DELETE FROM sys_user_role
  WHERE user_id NOT IN (1, 2, 3);
 
@@ -57,7 +65,8 @@ DELETE FROM sys_user_permission
 DELETE FROM sys_user
  WHERE id NOT IN (1, 2, 3);
 
--- 6) 配置：只保留 10 个内置项（冒烟脚本新建的自定义项连墓碑行一起清掉）
+-- 6) 配置：只保留内置项（13 个：SITE 4 + SECURITY 6 + RECOVERY 3）
+-- 冒烟脚本新建的自定义项连墓碑行一起清掉
 DELETE FROM sys_config WHERE builtin = 0;
 
 -- 7) 日志只留最近 7 天（日志表只增不改，这里是有意的例外：清理测试噪音）
@@ -74,4 +83,6 @@ UNION ALL SELECT 'survey_draft',           COUNT(*) FROM survey_draft
 UNION ALL SELECT 'survey_template',        COUNT(*) FROM survey_template
 UNION ALL SELECT 'template_rating',        COUNT(*) FROM template_rating
 UNION ALL SELECT 'sys_config',             COUNT(*) FROM sys_config
+UNION ALL SELECT 'sys_user_recovery',      COUNT(*) FROM sys_user_recovery
+UNION ALL SELECT 'sys_recovery_log',       COUNT(*) FROM sys_recovery_log
 UNION ALL SELECT 'sys_user',               COUNT(*) FROM sys_user;

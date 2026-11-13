@@ -122,6 +122,18 @@ async function handleSubmit() {
           />
         </el-form-item>
 
+        <!-- 放在密码框下面而不是底部「注册账号」旁边：忘记密码的人正在输密码，
+             眼睛就在这一块，跑到另一行去找入口不自然 -->
+        <div class="login-forgot">
+          <el-link
+            type="primary"
+            :underline="false"
+            @click="router.push({ name: 'forgot-password' })"
+          >
+            忘记密码？
+          </el-link>
+        </div>
+
         <el-form-item>
           <el-button
             type="primary"
@@ -167,6 +179,13 @@ async function handleSubmit() {
 
 .login-error {
   margin-bottom: 16px;
+}
+
+/* 紧贴密码框右端，负上边距抵消 el-form-item 自带的底部间距 */
+.login-forgot {
+  margin: -8px 0 14px;
+  text-align: right;
+  font-size: 13px;
 }
 
 .demo-title {

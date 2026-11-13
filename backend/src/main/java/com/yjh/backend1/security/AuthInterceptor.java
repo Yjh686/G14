@@ -52,6 +52,11 @@ public class AuthInterceptor implements HandlerInterceptor {
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/captcha",
+            // 密码找回：忘记密码的人恰恰进不来，这两步必须免登录。
+            // 防护在 RecoveryService 内部（失败计数、锁定、全量流水），
+            // 不是在拦截器这一层。
+            "/api/auth/recovery/lookup",
+            "/api/auth/recovery/reset",
             "/api/config/public",
             "/api/health",
             "/error"

@@ -37,6 +37,13 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true, title: '注册账号' },
   },
   {
+    path: '/forgot-password',
+    name: 'forgot-password',
+    // 懒加载可以：忘记密码是低频路径，多一个 chunk 的往返不影响日常首屏
+    component: () => import('@/views/auth/ForgotPasswordView.vue'),
+    meta: { public: true, title: '找回密码' },
+  },
+  {
     path: '/change-password',
     name: 'change-password',
     component: () => import('@/views/auth/ChangePasswordView.vue'),

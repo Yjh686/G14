@@ -16,7 +16,8 @@
     "e2e:stat": "node scripts/e2e-stat.mjs",
     "e2e:template": "node scripts/e2e-template.mjs",
     "e2e:config": "node scripts/e2e-config.mjs",
-    "e2e:all": "node scripts/e2e-smoke.mjs && node scripts/e2e-survey.mjs && node scripts/e2e-survey-edit.mjs && node scripts/e2e-stat.mjs && node scripts/e2e-template.mjs && node scripts/e2e-config.mjs"
+    "e2e:recovery": "node scripts/e2e-recovery.mjs",
+    "e2e:all": "node scripts/e2e-smoke.mjs && node scripts/e2e-survey.mjs && node scripts/e2e-survey-edit.mjs && node scripts/e2e-stat.mjs && node scripts/e2e-template.mjs && node scripts/e2e-config.mjs && node scripts/e2e-recovery.mjs"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

@@ -121,8 +121,35 @@ async function resetPassword(row: UserVO) {
   }
 }
 
-async function removeUser(row: UserVO) {
+/**
+ * 清除密保问题。
+ *
+ * <p>这是「重置密码」的配套兜底：用户可能连密保答案也忘了，或者因为连续答错
+ * 被锁了 30 分钟 —— 这两种情况下重置密码只能让他登进来，找回通道依然是堵的。
+ *
+ * <p>刻意做成「清除」而不是「解锁」：既然他答不上来，留着一套他答不对的问题
+ * 只会让下次再忘时仍然失败。清掉之后他登录进个人资料页重设即可。
+ */
+async function clearRecovery(row: UserVO) {
   try {
+    await ElMessageBox.confirm(
+      `确定要清除「${row.realName}」的密保问题吗？\n` +
+        '清除后该用户将无法通过「忘记密码」自助找回，需要登录后在个人资料页重新设置。',
+      '清除密保',
+      { type: 'warning', confirmButtonText: '清除', cancelButtonText: '取消' },
+    )
+  } catch {
+    return
+  }
+  try {
+    await userApi.clearRecovery(row.id)
+    ElMessage.success('已清除该用户的密保问题')
+  } catch (e) {
+    ElMessage.error(e instanceof ApiError ? e.message : '清除密保失败')
+  }
+}
+
+async function removeUser(row: UserVO) {  try {
     await ElMessageBox.confirm(
       `确定要删除「${row.realName}（${row.username}）」吗？删除后该账号将无法登录。`,
       '删除用户',
@@ -250,7 +277,21 @@ onMounted(load)
             <el-button link :type="row.status === 1 ? 'danger' : 'success'" @click="toggleStatus((row as UserVO))">
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
-            <el-button link type="danger" @click="removeUser((row as UserVO))">删除</el-button>
+            <!-- 低频操作收进下拉：一排放五个链接按钮会挤成两行，
+                 而这两个操作一个月也用不到一次 -->
+            <el-dropdown trigger="click">
+              <el-button link type="primary">更多</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="clearRecovery((row as UserVO))">
+                    清除密保
+                  </el-dropdown-item>
+                  <el-dropdown-item divided @click="removeUser((row as UserVO))">
+                    删除账号
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>

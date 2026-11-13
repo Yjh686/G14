@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { ApiError } from '@/api/http'
+import { recoveryApi } from '@/api/recovery'
 import { roleLabel, validatePhone } from '@/utils/dict'
+import RecoverySetupDialog from '@/components/RecoverySetupDialog.vue'
 
 const auth = useAuthStore()
 
@@ -16,6 +18,32 @@ const form = reactive({
   phone: auth.user?.phone ?? '',
   email: auth.user?.email ?? '',
 })
+
+/* ------------------------- 密保问题 ------------------------- */
+const recoveryDialog = ref(false)
+const hasRecovery = ref(false)
+const recoveryLoading = ref(false)
+
+/**
+ * 查询是否已设置密保。失败一律按「未设置」显示：
+ * 接口不可用时最合理的默认是「让用户去设置」，而不是显示成已完成。
+ */
+async function loadRecovery() {
+  recoveryLoading.value = true
+  try {
+    hasRecovery.value = await recoveryApi.mine()
+  } catch {
+    hasRecovery.value = false
+  } finally {
+    recoveryLoading.value = false
+  }
+}
+
+onMounted(loadRecovery)
+
+function onRecoverySaved() {
+  void loadRecovery()
+}
 
 const rules: FormRules = {
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
@@ -106,6 +134,37 @@ async function handleSubmit() {
         </el-form-item>
       </el-form>
     </el-card>
+
+    <!-- 密保问题单独一张卡片：它管的是「账号能不能找回来」，与个人资料无关。
+         混在同一个表单里，会让人以为改资料时顺便改了密保。 -->
+    <el-card shadow="never" class="recovery-card">
+      <template #header>
+        <span class="card-title">账号安全</span>
+      </template>
+
+      <div v-loading="recoveryLoading" class="recovery-row">
+        <div class="recovery-text">
+          <div class="recovery-label">密保问题</div>
+          <div class="recovery-desc">
+            <template v-if="hasRecovery">
+              已设置。忘记密码时可在登录页「忘记密码」里答题自助重置。
+            </template>
+            <template v-else>
+              还没有设置。设置后忘记密码可以自助重置，不必找管理员。
+            </template>
+          </div>
+        </div>
+        <div class="recovery-ops">
+          <el-tag v-if="hasRecovery" type="success" size="small">已设置</el-tag>
+          <el-tag v-else type="warning" size="small">未设置</el-tag>
+          <el-button type="primary" plain size="small" @click="recoveryDialog = true">
+            {{ hasRecovery ? '修改密保' : '去设置' }}
+          </el-button>
+        </div>
+      </div>
+    </el-card>
+
+    <RecoverySetupDialog v-model="recoveryDialog" @saved="onRecoverySaved" />
   </div>
 </template>
 
@@ -121,6 +180,38 @@ async function handleSubmit() {
 
 .profile-form {
   max-width: 520px;
+}
+
+.recovery-card {
+  margin-top: 16px;
+}
+
+.recovery-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.recovery-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.recovery-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #909399;
+}
+
+.recovery-ops {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
 }
 
 .ml-8 {

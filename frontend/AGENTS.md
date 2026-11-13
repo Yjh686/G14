@@ -16,14 +16,15 @@ npm run e2e:survey-edit # 问卷编辑 E2E：预览、复制、草稿自动保�
 npm run e2e:stat       # 统计 E2E：图表数据与 Excel 下载
 npm run e2e:template   # 模板 E2E：共享→审核→评分→使用→下架
 npm run e2e:config     # 系统配置 E2E：站点名/公告/密码规则联动、公开配置边界
-npm run e2e:all        # 依次跑完六个 E2E
+npm run e2e:recovery   # 密码找回 E2E：设置密保→忘记密码重置→管理员清除密保
+npm run e2e:all        # 依次跑完七个 E2E
 ```
 
 ## 目录约定
 
 ```text
 src/
-├── api/          # 后端接口封装：http.ts 是唯一 axios 实例，auth.ts / user.ts / survey.ts / stat.ts / template.ts / log.ts / config.ts 按模块分文件
+├── api/          # 后端接口封装：http.ts 是唯一 axios 实例，auth.ts / user.ts / survey.ts / stat.ts / template.ts / log.ts / config.ts / recovery.ts 按模块分文件
 ├── stores/       # Pinia：auth（登录态）与 config（公开配置，路由守卫里预加载）
 ├── router/       # 路由表 + 导航守卫（登录、强制改密、权限校验）
 ├── layout/       # MainLayout：侧边菜单 + 顶栏，菜单由权限动态生成
@@ -67,6 +68,8 @@ src/
 29. **评分平均分展示保留 1 位小数**：`验收标准.md` 2.3 与 SRS R-TPL-2 都要求 1 位，页面用 `toFixed(1)`、Excel 汇总行用 `%.1f`。后端接口 JSON 仍返回 2 位（给较精确的值避免二次舍入），**不要为了「统一」把接口也改成 1 位**，那样再取整一次会产生 `4.25 → 4.2 → 4.2` 与手工计算不符的偏差。
 30. **E2E 断言不要假设演示账号在第 1 页**：用户表按 id 倒序分页，跑过压测或冒烟脚本后，压测账号会把 `teacher`/`student` 挤到后面几页，断言「第 1 页含张老师」会假失败。要么用搜索框定位（`input[placeholder="搜索学号/工号或姓名"]`），要么断言「搜到了」。同类问题：任何「列表里应该有 X」的断言都要先想清楚分页与排序。
 
+31. **免登录的接口单独放一个 api 对象**：`src/api/recovery.ts` 拆成 `recoveryPublicApi`（`lookup`/`reset`，免登录）与 `recoveryApi`（`mine`/`myQuestions`/`setup`，需登录）。合成一个对象时，在登录页误引「设置密保」只会报 401，排查一轮才发现是调错接口；更糟的是有人在需登录的页面反手引了 `reset`，把「改密码」的免登录接口带进来，参数拼错就是安全漏洞。**导入哪个对象本身就是意图声明。**
+32. **「必须留下的写操作」不能和抛异常的代码放同一个事务**：找回密码的失败计数就是这么丢的——方法挂 `@Transactional`，答案错误时抛 `BizException`（RuntimeException）→ 整个事务回滚，刚写的 `fail_count` 一起没了，错误提示文案却是对的，所以不打日志、不报错、只在压测里才现形。修法是把它搬到**另一个 Bean** 用 `REQUIRES_NEW`，外层方法**不加** `@Transactional`。同类内部调用不经过代理，注释加了也没用。
 
 ## 已知事项
 
@@ -88,3 +91,7 @@ src/
 - 条形图末端标签形如 `3 · 37.5%`，`barOption` 的 `grid.right` 必须留够宽度（现为 84px）。留 48px 时 ECharts 会按画布右界裁切，百分号被切掉，截图看着像 `37.5'`。
 - E2E 断言「列表里没有 X」时**必须按行定位**（`.el-table__row` 的 `hasText`），不要断言整张表。数据库里可能残留别的记录，整表断言会随数据变化假失败——`e2e-survey` 的「匿名卷不回显」就踩过。
 - 首屏性能的取舍与实测数据见 `docs/design/首屏加载优化.md`（含「试过但撤回」的 manualChunks、以及为什么瓶颈在隧道而非代码）。
+- **确认框的定位在 `.el-overlay-message-box` 上，不在 `.el-message-box` 上**。Element Plus 2.9 里 `.el-message-box` 是 `position: relative`、`z-index: auto`，真正做遮罩与居中（`position: fixed` + flex）的是外层容器。E2E 断言「确认框在视口中心」必须量 overlay 与 box 的几何中心，**不要读 `.el-message-box` 的 `position`/`z-index` 就判失败**——会得出「样式没生效」的错误结论，而实际渲染完全正常。
+- **E2E 脚本改掉某个账号的密码，必须在 `finally` 里复原，并且开头先自检**。`e2e-recovery` 会把学生密码改成随机值（这正是被测功能），中途任何一步失败都会让下一轮卡在 `login()` 超时上，报错位置与真正原因毫无关系。写法：开头 `tryLogin()` 探测演示密码，不可用就先复原；`finally` 里再复原一次并断言。**别在最后一步才复原**，那等于没有复原。
+- **浏览器的 `Failed to load resource: 401/400` 不算控制台报错**。测试失败路径（错误密码、答错密保）本来就会产生这些日志，把它们算进去等于要求测试不要测失败路径。过滤掉 `Failed to load resource: the server responded with a status of \d{3}`。
+- **列表页的搜索框多数只绑 `@keyup.enter` 与「查询」按钮，没有 watch**。`fill()` 之后必须 `press('Enter')` 或点查询，只等 `waitForTimeout` 是等不到结果的（`e2e-recovery` 踩过，报「搜索不到目标用户行」）。
